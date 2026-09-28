@@ -11,6 +11,7 @@ use App\Http\Controllers\Admin\SiswaController;
 use App\Http\Controllers\Admin\KandidatController;
 use App\Http\Controllers\Admin\PeriodeController;
 use App\Http\Controllers\Admin\HasilController;
+use App\Http\Middleware\NoCache;
 use Illuminate\Http\Request;
 
 // Redirect halaman utama ke login
@@ -24,7 +25,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Route Khusus Siswa (Diproteksi dengan Session Siswa)
-Route::middleware(['cek.siswa'])->group(function () {
+// NoCache: halaman tidak disimpan browser, jadi tombol Back selalu ambil data terbaru dari server
+Route::middleware(['cek.siswa', NoCache::class])->group(function () {
 
     // Halaman Dashboard Utama
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');

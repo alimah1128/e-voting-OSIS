@@ -182,6 +182,28 @@
             flex: 1;
         }
 
+        /* ====== ALERT PESAN (mis. "Anda sudah melakukan voting") ====== */
+        .alert-voting {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            color: #92400E;
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+        .alert-voting i {
+            color: #D97706;
+            font-size: 16px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
         /* Banner Welcome - Biru Cerah Sesuai Figma */
         .banner {
             background: linear-gradient(90deg, #00A3FF, #0082CC);
@@ -400,6 +422,10 @@
             .container {
                 padding: 20px 14px 30px;
             }
+            .alert-voting {
+                padding: 12px 14px;
+                font-size: 12px;
+            }
             .banner {
                 padding: 20px;
             }
@@ -472,6 +498,14 @@
 
     <!-- Main Content -->
     <div class="container">
+
+        <!-- Alert pesan dari sistem (mis. sudah voting, tidak bisa memilih lagi) -->
+        @if (session('error'))
+            <div class="alert-voting" role="alert">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
 
         <!-- Banner Sapaan Biru Cerah -->
         <div class="banner">

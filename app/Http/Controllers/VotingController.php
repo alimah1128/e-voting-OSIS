@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class VotingController extends Controller
 {
+    private const PESAN_SUDAH_VOTING = 'Anda sudah melakukan voting untuk periode ini. Suara tidak dapat diubah atau dikirim ulang.';
+
     // Helper: ambil tahun ajaran dari periode aktif, sama seperti di DashboardController
     private function tahunAjaranDari($periode)
     {
@@ -15,6 +18,15 @@ class VotingController extends Controller
             return 'OSIS';
         }
         return $periode->tahun_ajaran ?? Carbon::parse($periode->tanggal_mulai)->format('Y');
+    }
+
+    // Helper: cek apakah siswa yang sedang login sudah voting di periode tertentu
+    private function sudahVotingDiPeriode($periodeId): bool
+    {
+        return DB::table('votes')
+            ->where('periode_id', $periodeId)
+            ->where('siswa_id', session('siswa_id'))
+            ->exists();
     }
 
     // Halaman daftar kandidat (GET /kandidat)
@@ -36,10 +48,7 @@ class VotingController extends Controller
                     return $k;
                 });
 
-            $sudahVoting = DB::table('votes')
-                ->where('periode_id', $periodeAktif->id)
-                ->where('siswa_id', session('siswa_id'))
-                ->exists();
+            $sudahVoting = $this->sudahVotingDiPeriode($periodeAktif->id);
         }
 
         $tahunAjaran = $this->tahunAjaranDari($periodeAktif);
@@ -54,6 +63,11 @@ class VotingController extends Controller
 
         if (! $kandidat) {
             return redirect()->route('kandidat')->withErrors(['pilihan' => 'Kandidat tidak ditemukan.']);
+        }
+
+        // Kalau siswa sudah voting, jangan biarkan sampai ke halaman konfirmasi
+        if ($this->sudahVotingDiPeriode($kandidat->periode_id)) {
+            return redirect()->route('dashboard')->with('error', self::PESAN_SUDAH_VOTING);
         }
 
         $kandidat->misi = json_decode($kandidat->misi, true) ?? [];
@@ -74,21 +88,24 @@ class VotingController extends Controller
 
         $kandidat = DB::table('kandidat')->where('id', $request->kandidat_id)->first();
 
-        $sudahVoting = DB::table('votes')
-            ->where('periode_id', $kandidat->periode_id)
-            ->where('siswa_id', session('siswa_id'))
-            ->exists();
-
-        if ($sudahVoting) {
-            return redirect()->route('dashboard')->with('error', 'Anda sudah melakukan voting untuk periode ini.');
+        if ($this->sudahVotingDiPeriode($kandidat->periode_id)) {
+            return redirect()->route('dashboard')->with('error', self::PESAN_SUDAH_VOTING);
         }
 
-        DB::table('votes')->insert([
-            'periode_id' => $kandidat->periode_id,
-            'siswa_id' => session('siswa_id'),
-            'kandidat_id' => $kandidat->id,
-            'waktu_vote' => now(),
-        ]);
+        try {
+            DB::table('votes')->insert([
+                'periode_id' => $kandidat->periode_id,
+                'siswa_id' => session('siswa_id'),
+                'kandidat_id' => $kandidat->id,
+                'waktu_vote' => now(),
+            ]);
+        } catch (QueryException $e) {
+            // Kode 23000 = pelanggaran unique constraint (dua request masuk hampir bersamaan)
+            if ($e->getCode() === '23000') {
+                return redirect()->route('dashboard')->with('error', self::PESAN_SUDAH_VOTING);
+            }
+            throw $e;
+        }
 
         return redirect()->route('selesai');
     }

@@ -385,6 +385,16 @@
         @endif
     </div>
 
+    <!-- Kalau halaman ini dimunculkan lagi lewat tombol Back (dari cache browser),
+         muat ulang supaya status voting terbaru dari server yang dipakai -->
+    <script>
+        window.addEventListener('pageshow', function (e) {
+            if (e.persisted) {
+                window.location.reload();
+            }
+        });
+    </script>
+
     <!-- Efek kartu ikut bergerak saat di-scroll (khusus HP / layar sentuh) -->
     <script>
         (function () {

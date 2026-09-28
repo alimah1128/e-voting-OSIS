@@ -181,6 +181,11 @@
         gap: 18px;
     }
 
+    /* min-width 0 supaya isi panel (tabel/grafik) tidak mendorong lebar halaman */
+    .hasil-grid > .panel {
+        min-width: 0;
+    }
+
     .panel {
         background: #fff;
         border-radius: 18px;
@@ -194,6 +199,32 @@
         font-weight: 700;
         color: #14406B;
         margin-bottom: 14px;
+    }
+
+    .panel-head-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .panel-head-row .panel-title {
+        margin-bottom: 0;
+    }
+
+    /* Pembungkus tabel: bisa digeser ke samping kalau layar sempit */
+    .table-scroll {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .chart-wrap {
+        position: relative;
+        width: 100%;
+        height: 260px;
     }
 
     .table-hasil {
@@ -300,9 +331,61 @@
         box-shadow: 0 6px 14px rgba(0,0,0,0.12);
     }
 
+    /* ===== RESPONSIF ===== */
     @media (max-width: 900px) {
         .hasil-stat-cards { grid-template-columns: 1fr; }
         .hasil-grid { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+        .hasil-select-wrap {
+            min-width: 0;
+            width: 100%;
+        }
+
+        .periode-info-card {
+            padding: 16px 18px;
+        }
+
+        .hasil-stat-card {
+            padding: 18px 16px;
+        }
+
+        .hasil-stat-card .number {
+            font-size: 26px;
+        }
+
+        .panel {
+            padding: 16px;
+        }
+
+        .table-hasil {
+            min-width: 340px;
+        }
+
+        .chart-wrap {
+            height: 240px;
+        }
+
+        /* Tombol aksi jadi selebar layar supaya gampang ditekan */
+        .aksi-lanjutan-row {
+            flex-direction: column;
+        }
+
+        .aksi-lanjutan-row form {
+            display: block !important;
+            width: 100%;
+        }
+
+        .aksi-lanjutan-row .btn-primary,
+        .aksi-lanjutan-row .btn-cancel-outline,
+        .aksi-lanjutan-row .btn-danger-solid {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
+        }
     }
 </style>
 
@@ -376,42 +459,46 @@
         <div class="hasil-grid">
             <div class="panel">
                 <div class="panel-title">Perolehan Suara per Kandidat</div>
-                <table class="table-hasil">
-                    <thead>
-                        <tr>
-                            <th>No.</th>
-                            <th>Kandidat</th>
-                            <th>Suara</th>
-                            <th>%</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($hasilPerKandidat as $item)
+                <div class="table-scroll">
+                    <table class="table-hasil">
+                        <thead>
                             <tr>
-                                <td><span class="rank-badge">{{ $item->kandidat->no_urut }}</span></td>
-                                <td>
-                                    <strong>{{ $item->kandidat->nama_ketua }}</strong><br>
-                                    <span style="font-size:11px; color:#94A3B8;">& {{ $item->kandidat->nama_wakil }}</span>
-                                </td>
-                                <td>{{ $item->suara }}</td>
-                                <td><span class="persen-pill">{{ $item->persen }}%</span></td>
+                                <th>No.</th>
+                                <th>Kandidat</th>
+                                <th>Suara</th>
+                                <th>%</th>
                             </tr>
-                        @empty
-                            <tr><td colspan="4" style="text-align:center; color:#94A3B8;">Belum ada kandidat di periode ini.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @forelse ($hasilPerKandidat as $item)
+                                <tr>
+                                    <td><span class="rank-badge">{{ $item->kandidat->no_urut }}</span></td>
+                                    <td>
+                                        <strong>{{ $item->kandidat->nama_ketua }}</strong><br>
+                                        <span style="font-size:11px; color:#94A3B8;">& {{ $item->kandidat->nama_wakil }}</span>
+                                    </td>
+                                    <td>{{ $item->suara }}</td>
+                                    <td><span class="persen-pill">{{ $item->persen }}%</span></td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="4" style="text-align:center; color:#94A3B8;">Belum ada kandidat di periode ini.</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="panel">
-                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
-                    <div class="panel-title" style="margin-bottom:0;">Grafik Hasil Voting</div>
+                <div class="panel-head-row">
+                    <div class="panel-title">Grafik Hasil Voting</div>
                     <div class="chart-toggle-group">
                         <button type="button" class="chart-toggle-btn selected" id="btnChartBar" onclick="gantiChart('bar')">Bar</button>
                         <button type="button" class="chart-toggle-btn" id="btnChartPie" onclick="gantiChart('pie')">Pie</button>
                     </div>
                 </div>
-                <canvas id="chartHasilVoting" height="220"></canvas>
+                <div class="chart-wrap">
+                    <canvas id="chartHasilVoting"></canvas>
+                </div>
             </div>
         </div>
 
@@ -497,6 +584,7 @@
                     },
                     options: {
                         responsive: true,
+                        maintainAspectRatio: false,
                         plugins: { legend: { display: type === 'pie' } },
                         scales: type === 'bar' ? { y: { beginAtZero: true, ticks: { precision: 0 } } } : {}
                     }

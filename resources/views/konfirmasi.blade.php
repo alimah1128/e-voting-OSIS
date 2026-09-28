@@ -137,6 +137,12 @@
             box-shadow: 0 4px 12px rgba(0, 163, 255, 0.3); transition: all 0.2s;
         }
         .btn-konfirmasi:hover { background-color: #0082CC; }
+        /* Setelah diklik: tombol dikunci supaya suara tidak terkirim dua kali */
+        .btn-konfirmasi:disabled {
+            background-color: #94A3B8;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
 
         @media (max-width: 480px) {
             .navbar { padding: 10px 14px; gap: 8px; }
@@ -259,10 +265,10 @@
             <div class="action-buttons">
                 <a href="{{ route('kandidat') }}" class="btn-batal">Batal</a>
 
-                <form action="{{ route('submit.vote') }}" method="POST" class="form-confirm">
+                <form action="{{ route('submit.vote') }}" method="POST" class="form-confirm" id="formVote">
                     @csrf
                     <input type="hidden" name="kandidat_id" value="{{ $kandidat->id }}">
-                    <button type="submit" class="btn-konfirmasi">
+                    <button type="submit" class="btn-konfirmasi" id="btnKonfirmasi">
                         Ya, Konfirmasi
                     </button>
                 </form>
@@ -270,6 +276,32 @@
 
         </div>
     </div>
+
+    <script>
+        // Cegah klik ganda: begitu form dikirim, tombol dikunci
+        (function () {
+            var form = document.getElementById('formVote');
+            var tombol = document.getElementById('btnKonfirmasi');
+
+            form.addEventListener('submit', function (e) {
+                if (form.dataset.terkirim === '1') {
+                    e.preventDefault();
+                    return;
+                }
+                form.dataset.terkirim = '1';
+                tombol.disabled = true;
+                tombol.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memproses...';
+            });
+
+            // Kalau halaman ini dimunculkan lagi lewat tombol Back (dari cache browser),
+            // muat ulang supaya status terbaru dari server yang dipakai
+            window.addEventListener('pageshow', function (e) {
+                if (e.persisted) {
+                    window.location.reload();
+                }
+            });
+        })();
+    </script>
 
 </body>
 </html>

@@ -1,7 +1,12 @@
-<div class="sidebar">
+<div class="sidebar" id="sidebar">
     <div class="sidebar-brand">
         <img src="{{ asset('image/logo-osis.png') }}" alt="Logo">
         <div class="name">OSIS SMK<span>Pertiwi Kuningan</span></div>
+
+        <!-- Tombol tutup menu: hanya tampil di HP -->
+        <button type="button" class="sidebar-close" onclick="tutupSidebar()" aria-label="Tutup menu">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
     </div>
 
     <div class="sidebar-menu">

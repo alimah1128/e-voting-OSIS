@@ -29,6 +29,7 @@
             background-color: #F3F8FC;
             display: flex;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
 
@@ -41,6 +42,7 @@
             padding: 24px 0;
             flex-shrink: 0;
             height: 100vh;
+            height: 100dvh;
             overflow-y: auto;
         }
 
@@ -49,6 +51,7 @@
             align-items: center;
             gap: 10px;
             padding: 0 16px 24px;
+            position: relative;
         }
 
         .sidebar-brand img {
@@ -68,6 +71,41 @@
             font-weight: 400;
             font-size: 13px;
             opacity: 0.8;
+        }
+
+        /* Tombol tutup menu (hanya muncul di HP, lihat media query di bawah) */
+        .sidebar-close {
+            display: none;
+            position: absolute;
+            top: -8px;
+            right: 12px;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-close:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Lapisan gelap di belakang sidebar saat menu HP terbuka */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.5);
+            z-index: 940;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
         }
 
         .sidebar-menu {
@@ -125,9 +163,11 @@
 
         .main {
             flex: 1;
+            min-width: 0;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh;
             overflow: hidden;
         }
 
@@ -139,18 +179,49 @@
             align-items: center;
             justify-content: space-between;
             flex-shrink: 0;
+            gap: 10px;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        /* Tombol hamburger (hanya muncul di HP) */
+        .btn-menu {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            background: #F0F7FF;
+            color: #2D6BA0;
+            font-size: 18px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s ease;
+        }
+
+        .btn-menu:hover {
+            background: #E0F0FF;
         }
 
         .topbar-brand {
             display: flex;
             align-items: center;
             gap: 10px;
+            min-width: 0;
         }
 
         .topbar-brand img {
             width: 52px;
             height: 52px;
             object-fit: contain;
+            flex-shrink: 0;
         }
 
         .topbar-brand .title {
@@ -171,6 +242,7 @@
             padding: 6px 10px;
             border-radius: 10px;
             transition: background 0.2s ease;
+            flex-shrink: 0;
         }
 
         .topbar-user:hover {
@@ -208,6 +280,7 @@
         .content {
             padding: 28px;
             flex: 1;
+            min-width: 0;
             overflow-y: auto;
         }
 
@@ -266,6 +339,7 @@
         .btn-group {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
         .btn-primary,
@@ -428,6 +502,7 @@
             display: flex;
             list-style: none;
             gap: 4px;
+            flex-wrap: wrap;
         }
 
         .pagination-wrapper nav a,
@@ -647,6 +722,7 @@
             align-items: center;
             justify-content: center;
             z-index: 999;
+            padding: 16px;
         }
 
         .modal-box {
@@ -848,7 +924,7 @@
 
         .kandidat-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
             gap: 20px;
         }
 
@@ -963,6 +1039,7 @@
 
         .form-row-2 .field-group {
             flex: 1;
+            min-width: 0;
         }
 
         .plain-input {
@@ -1214,19 +1291,176 @@
             background: #B91C1C;
             transform: scale(1.1);
         }
+
+        /* =====================================================
+           RESPONSIF: TABLET & HP
+           ===================================================== */
+
+        /* Tablet & HP: sidebar jadi menu geser (hamburger) */
+        @media (max-width: 900px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                width: min(260px, 82vw);
+                z-index: 950;
+                transform: translateX(-100%);
+                transition: transform 0.25s ease;
+                box-shadow: none;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+                box-shadow: 8px 0 30px rgba(0, 0, 0, 0.25);
+            }
+
+            .sidebar-brand img {
+                width: 56px;
+                height: 56px;
+            }
+
+            .sidebar-close {
+                display: flex;
+            }
+
+            .btn-menu {
+                display: inline-flex;
+            }
+
+            .topbar {
+                padding: 10px 16px;
+            }
+
+            .topbar-brand img {
+                width: 40px;
+                height: 40px;
+            }
+
+            .topbar-brand .title {
+                font-size: 15px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .topbar-brand .subtitle {
+                font-size: 11px;
+            }
+
+            .content {
+                padding: 18px 16px;
+            }
+
+            /* Tabel lebar: bisa digeser ke samping, halaman tidak ikut melebar */
+            .table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .hasil-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-card {
+                max-width: 100%;
+            }
+        }
+
+        /* HP */
+        @media (max-width: 600px) {
+            .hasil-stat-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .header-action h2 {
+                font-size: 17px;
+            }
+
+            .btn-group {
+                width: 100%;
+            }
+
+            .filter-form input {
+                min-width: 0;
+                width: 100%;
+                flex: 1 1 100%;
+            }
+
+            .filter-form select {
+                flex: 1 1 100%;
+            }
+
+            .form-card {
+                padding: 24px 18px;
+            }
+
+            .form-card:hover {
+                transform: none;
+            }
+
+            .modal-box {
+                padding: 24px 18px;
+                width: 100%;
+            }
+
+            .form-row-2 {
+                flex-direction: column;
+                gap: 0;
+            }
+
+            .modal-actions {
+                flex-wrap: wrap;
+            }
+
+            .pagination-wrapper {
+                justify-content: center;
+                text-align: center;
+            }
+        }
+
+        /* HP kecil: topbar cuma tampilkan avatar admin */
+        @media (max-width: 480px) {
+            .topbar-brand .subtitle {
+                display: none;
+            }
+
+            .topbar-user .info {
+                display: none;
+            }
+
+            .topbar-user {
+                padding: 4px;
+            }
+
+            .topbar-brand .title {
+                font-size: 13px;
+            }
+        }
     </style>
 </head>
 <body>
+
+    <!-- Lapisan gelap di belakang menu HP -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="tutupSidebar()"></div>
 
     @include('admin.partials.sidebar')
 
     <div class="main">
         <div class="topbar">
-            <div class="topbar-brand">
-                <img src="{{ asset('image/logo-osis.png') }}" alt="Logo">
-                <div>
-                    <div class="title">OSIS SMK Pertiwi Kuningan</div>
-                    <div class="subtitle">Panel Admin E-Voting</div>
+            <div class="topbar-left">
+                <button type="button" class="btn-menu" onclick="bukaSidebar()" aria-label="Buka menu">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div class="topbar-brand">
+                    <img src="{{ asset('image/logo-osis.png') }}" alt="Logo">
+                    <div>
+                        <div class="title">OSIS SMK Pertiwi Kuningan</div>
+                        <div class="subtitle">Panel Admin E-Voting</div>
+                    </div>
                 </div>
             </div>
 
@@ -1353,7 +1587,27 @@
     </div>
 
     <script>
+        // ===== Menu samping (hamburger di HP) =====
+        function bukaSidebar() {
+            document.getElementById('sidebar').classList.add('open');
+            document.getElementById('sidebarOverlay').classList.add('active');
+        }
+        function tutupSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+
+        // Tutup menu dengan tombol Esc, dan otomatis tertutup kalau layar dibesarkan
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') tutupSidebar();
+        });
+        window.addEventListener('resize', function () {
+            if (window.innerWidth > 900) tutupSidebar();
+        });
+
+        // ===== Modal Logout & Profil =====
         function bukaModalLogout() {
+            tutupSidebar();
             document.getElementById('modalLogout').style.display = 'flex';
         }
         function tutupModalLogout() {

@@ -119,6 +119,13 @@
         margin-bottom: 16px;
     }
 
+    /* Pembungkus tabel: bisa digeser ke samping kalau layar sempit */
+    .table-scroll {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
     .table-hasil {
         width: 100%;
         border-collapse: collapse;
@@ -132,6 +139,7 @@
         color: #94A3B8;
         padding: 10px 12px;
         border-bottom: 1px solid #F1F5F9;
+        white-space: nowrap;
     }
 
     .table-hasil tbody tr {
@@ -196,6 +204,7 @@
         font-weight: 700;
         background: #FEF2F2;
         color: #DC2626;
+        white-space: nowrap;
     }
 
     .progress-bar-track {
@@ -224,6 +233,37 @@
         font-weight: 700;
         color: #DC2626;
         min-width: 34px;
+    }
+
+    /* ===== RESPONSIF ===== */
+    @media (max-width: 600px) {
+        .hasil-select-wrap {
+            min-width: 0;
+            width: 100%;
+        }
+
+        .periode-info-card {
+            padding: 16px 18px;
+        }
+
+        .panel {
+            padding: 16px;
+        }
+
+        /* Lebar minimum supaya kolom tidak terjepit, sisanya bisa digeser */
+        .table-hasil {
+            min-width: 440px;
+        }
+
+        .table-hasil td {
+            padding: 12px 10px;
+            font-size: 13px;
+        }
+
+        .table-hasil td,
+        .table-hasil th {
+            white-space: nowrap;
+        }
     }
 </style>
 
@@ -269,42 +309,44 @@
             <div class="panel-title">Rekap Belum Memilih per Kelas</div>
             <div class="panel-subtitle">Diurutkan dari kelas dengan persentase siswa belum voting tertinggi. Klik nama kelas untuk detail siswanya.</div>
 
-            <table class="table-hasil">
-                <thead>
-                    <tr>
-                        <th>Kelas</th>
-                        <th>Belum Memilih</th>
-                        <th>Persentase Belum Memilih</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($dataKelas as $row)
-                        <tr class="{{ $row->perlu_perhatian ? 'is-top' : '' }} {{ $kelasTerpilih === $row->kelas ? 'is-selected' : '' }}">
-                            <td>
-                                <a href="{{ route('admin.belumMemilih', ['periode_id' => $periodeTerpilih->id, 'kelas' => $row->kelas]) }}" class="kelas-nama">
-                                    {{ $row->kelas }}
-                                    @if ($row->perlu_perhatian)
-                                        <span class="tanda-perhatian" title="Sebagian besar siswa belum memilih">
-                                            <i class="fa-solid fa-triangle-exclamation"></i>
-                                        </span>
-                                    @endif
-                                </a>
-                            </td>
-                            <td><span class="jumlah-pill">{{ $row->jumlah }} dari {{ $row->total }} siswa</span></td>
-                            <td>
-                                <div class="progress-wrap">
-                                    <div class="progress-bar-track">
-                                        <div class="progress-bar-fill" style="width: {{ $row->persen }}%"></div>
-                                    </div>
-                                    <span class="progress-persen">{{ $row->persen }}%</span>
-                                </div>
-                            </td>
+            <div class="table-scroll">
+                <table class="table-hasil">
+                    <thead>
+                        <tr>
+                            <th>Kelas</th>
+                            <th>Belum Memilih</th>
+                            <th>Persentase Belum Memilih</th>
                         </tr>
-                    @empty
-                        <tr><td colspan="3" style="text-align:center; color:#16A34A; padding: 30px 12px;">🎉 Semua siswa sudah memilih di semua kelas!</td></tr>
-                    @endforelse
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @forelse ($dataKelas as $row)
+                            <tr class="{{ $row->perlu_perhatian ? 'is-top' : '' }} {{ $kelasTerpilih === $row->kelas ? 'is-selected' : '' }}">
+                                <td>
+                                    <a href="{{ route('admin.belumMemilih', ['periode_id' => $periodeTerpilih->id, 'kelas' => $row->kelas]) }}" class="kelas-nama">
+                                        {{ $row->kelas }}
+                                        @if ($row->perlu_perhatian)
+                                            <span class="tanda-perhatian" title="Sebagian besar siswa belum memilih">
+                                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                            </span>
+                                        @endif
+                                    </a>
+                                </td>
+                                <td><span class="jumlah-pill">{{ $row->jumlah }} dari {{ $row->total }} siswa</span></td>
+                                <td>
+                                    <div class="progress-wrap">
+                                        <div class="progress-bar-track">
+                                            <div class="progress-bar-fill" style="width: {{ $row->persen }}%"></div>
+                                        </div>
+                                        <span class="progress-persen">{{ $row->persen }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="3" style="text-align:center; color:#16A34A; padding: 30px 12px;">🎉 Semua siswa sudah memilih di semua kelas!</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         @if ($kelasTerpilih)
@@ -312,26 +354,28 @@
                 <div class="panel-title">Siswa Belum Memilih — Kelas {{ $kelasTerpilih }}</div>
                 <div class="panel-subtitle">{{ $siswaBelum->count() }} siswa belum melakukan voting di periode {{ $periodeTerpilih->nama_periode }}</div>
 
-                <table class="table-hasil">
-                    <thead>
-                        <tr>
-                            <th>NIS</th>
-                            <th>Nama</th>
-                            <th>Username</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($siswaBelum as $s)
+                <div class="table-scroll">
+                    <table class="table-hasil">
+                        <thead>
                             <tr>
-                                <td>{{ $s->nis }}</td>
-                                <td>{{ $s->nama }}</td>
-                                <td>{{ $s->username }}</td>
+                                <th>NIS</th>
+                                <th>Nama</th>
+                                <th>Username</th>
                             </tr>
-                        @empty
-                            <tr><td colspan="3" style="text-align:center; color:#16A34A; padding: 20px 12px;">🎉 Semua siswa di kelas ini sudah memilih!</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @forelse ($siswaBelum as $s)
+                                <tr>
+                                    <td>{{ $s->nis }}</td>
+                                    <td>{{ $s->nama }}</td>
+                                    <td>{{ $s->username }}</td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="3" style="text-align:center; color:#16A34A; padding: 20px 12px;">🎉 Semua siswa di kelas ini sudah memilih!</td></tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
             </div>
         @endif
     @endif
