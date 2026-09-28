@@ -177,6 +177,12 @@
         .modal-box h2 { font-size: 16px; font-weight: 800; color: #0F172A; margin-bottom: 2px; }
         .modal-box .modal-sub { font-size: 12px; color: #94A3B8; margin-bottom: 18px; }
 
+        .form-error-box {
+            background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626;
+            border-radius: 10px; padding: 12px 14px; font-size: 12px; margin-bottom: 16px;
+        }
+        .form-error-box ul { margin: 6px 0 0 18px; }
+
         .foto-upload-box {
             border: 2px dashed #BAE6FD; border-radius: 16px; background: #F8FBFF;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -193,6 +199,18 @@
             display: flex; align-items: center; justify-content: center; cursor: pointer;
             font-size: 11px;
         }
+
+        /* Tombol X: menandai foto profil mau dihapus (baru dihapus saat Simpan Perubahan) */
+        .btn-hapus-foto {
+            position: absolute; top: 10px; left: 50%; margin-left: 22px;
+            width: 24px; height: 24px; border-radius: 50%;
+            background: #DC2626; color: #fff; border: 2px solid #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; cursor: pointer; padding: 0;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+            transition: transform 0.15s ease, background 0.2s ease;
+        }
+        .btn-hapus-foto:hover { background: #B91C1C; transform: scale(1.1); }
 
         .field-input {
             display: flex; align-items: center; border: 1px solid #E2E8F0; border-radius: 10px;
@@ -335,7 +353,7 @@
 
             <div class="note-box">
                 <i class="fa-solid fa-circle-info"></i>
-                <span>NIS, kelas, dan username hanya bisa diubah oleh panitia OSIS/admin. Kamu bisa ganti foto profil dan password lewat tombol "Edit Profil".</span>
+                <span>NIS, kelas, dan username hanya bisa diubah oleh panitia OSIS/admin. Kamu bisa ganti atau hapus foto profil dan ganti password lewat tombol "Edit Profil".</span>
             </div>
         </div>
     </div>
@@ -346,6 +364,17 @@
             <h2>Profil Saya</h2>
             <p class="modal-sub">Kelola foto dan password akun kamu</p>
 
+            @if ($errors->any())
+                <div class="form-error-box">
+                    <strong>Ada kesalahan input:</strong>
+                    <ul>
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <form action="{{ route('siswa.profil.update') }}" method="POST" enctype="multipart/form-data">
                 @csrf
 
@@ -355,8 +384,18 @@
                     @else
                         <div id="previewFoto" class="foto-preview">{{ strtoupper(substr($siswa->nama, 0, 1)) }}</div>
                     @endif
+
+                    <!-- Tombol X: tandai foto untuk dihapus (tampil hanya kalau ada foto) -->
+                    <button type="button" class="btn-hapus-foto" id="btnHapusFoto"
+                        onclick="hapusFotoProfil()"
+                        title="Hapus foto profil"
+                        style="{{ $siswa->foto ? '' : 'display:none;' }}">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+
                     <label for="fotoInput" class="foto-edit-label"><i class="fa-solid fa-pen"></i></label>
                     <input type="file" name="foto" id="fotoInput" accept="image/*" style="display:none" onchange="previewFotoBaru(this)">
+                    <input type="hidden" name="hapus_foto" id="hapusFotoFlag" value="0">
                 </div>
 
                 <div class="field-input disabled" style="margin-bottom:14px;">
@@ -371,7 +410,7 @@
 
                 <div class="field-input">
                     <i class="fa-solid fa-lock leading"></i>
-                    <input type="password" name="password" id="passwordInput" placeholder="Kosongkan jika tidak diganti">
+                    <input type="password" name="password" id="passwordInput" placeholder="Kosongkan jika tidak diganti" autocomplete="new-password">
                     <button type="button" class="toggle-eye" onclick="toggleLihatPassword()">
                         <i class="fa-solid fa-eye" id="eyeIcon"></i>
                     </button>
@@ -386,12 +425,33 @@
     </div>
 
     <script>
+        // Simpan kondisi awal foto, supaya tombol Batal bisa mengembalikannya
+        const previewAwalHTML = document.getElementById('previewFoto').outerHTML;
+        const adaFotoAwal = {{ $siswa->foto ? 'true' : 'false' }};
+        const inisialNama = @json(strtoupper(substr($siswa->nama, 0, 1)));
+
         function bukaModalEditProfil() {
             document.getElementById('modalEditProfil').classList.add('active');
         }
+
         function tutupModalEditProfil() {
             document.getElementById('modalEditProfil').classList.remove('active');
+            resetFormFoto();
         }
+
+        // Kembalikan foto di modal ke kondisi awal (dipakai saat Batal)
+        function resetFormFoto() {
+            document.getElementById('fotoInput').value = '';
+            document.getElementById('hapusFotoFlag').value = '0';
+
+            const sekarang = document.getElementById('previewFoto');
+            const pembungkus = document.createElement('div');
+            pembungkus.innerHTML = previewAwalHTML;
+            sekarang.replaceWith(pembungkus.firstElementChild);
+
+            document.getElementById('btnHapusFoto').style.display = adaFotoAwal ? 'flex' : 'none';
+        }
+
         function previewFotoBaru(input) {
             if (input.files && input.files[0]) {
                 const url = URL.createObjectURL(input.files[0]);
@@ -405,8 +465,32 @@
                     img.src = url;
                     preview.replaceWith(img);
                 }
+
+                // Foto baru dipilih -> batalkan penanda hapus, tampilkan tombol X
+                document.getElementById('hapusFotoFlag').value = '0';
+                document.getElementById('btnHapusFoto').style.display = 'flex';
             }
         }
+
+        function hapusFotoProfil() {
+            // Batalkan foto baru kalau sempat dipilih
+            document.getElementById('fotoInput').value = '';
+
+            // Ganti preview dengan huruf inisial (sama seperti tampilan tanpa foto)
+            const sekarang = document.getElementById('previewFoto');
+            const inisial = document.createElement('div');
+            inisial.id = 'previewFoto';
+            inisial.className = 'foto-preview';
+            inisial.textContent = inisialNama;
+            sekarang.replaceWith(inisial);
+
+            // Tandai: foto benar-benar dihapus saat "Simpan Perubahan" diklik
+            document.getElementById('hapusFotoFlag').value = '1';
+
+            // Sembunyikan tombol X karena sudah tidak ada foto untuk dihapus
+            document.getElementById('btnHapusFoto').style.display = 'none';
+        }
+
         function toggleLihatPassword() {
             const input = document.getElementById('passwordInput');
             const icon = document.getElementById('eyeIcon');
@@ -418,6 +502,11 @@
                 icon.classList.replace('fa-eye-slash', 'fa-eye');
             }
         }
+
+        // Kalau ada error validasi, buka lagi modalnya supaya pesan errornya kelihatan
+        @if ($errors->any())
+            document.addEventListener('DOMContentLoaded', bukaModalEditProfil);
+        @endif
     </script>
 
 </body>

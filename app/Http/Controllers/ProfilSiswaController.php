@@ -31,29 +31,39 @@ class ProfilSiswaController extends Controller
     }
 
     /**
-     * Simpan perubahan profil (foto & password)
+     * Simpan perubahan profil (foto, hapus foto, & password)
      */
     public function update(Request $request)
     {
         $siswa = Siswa::findOrFail(session('siswa_id'));
 
         $request->validate([
-            'foto'     => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
-            'password' => 'nullable|min:6|confirmed',
+            'foto'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'password'   => 'nullable|min:6',
+            'hapus_foto' => 'nullable|in:0,1',
+        ], [
+            'foto.image'   => 'File foto harus berupa gambar.',
+            'foto.mimes'   => 'Foto harus berformat JPG, JPEG, atau PNG.',
+            'foto.max'     => 'Ukuran foto maksimal 2 MB.',
+            'password.min' => 'Password baru minimal 6 karakter.',
         ]);
 
         $data = [];
 
         if ($request->hasFile('foto')) {
-            if ($siswa->foto && file_exists(public_path('image/' . $siswa->foto))) {
-                unlink(public_path('image/' . $siswa->foto));
-            }
+            // Ganti dengan foto baru: hapus file lama dulu
+            $this->hapusFileFoto($siswa->foto);
 
             $file = $request->file('foto');
             $filename = 'siswa_' . $siswa->id . '_' . time() . '.' . $file->getClientOriginalExtension();
             $file->move(public_path('image'), $filename);
 
             $data['foto'] = $filename;
+        } elseif ($request->input('hapus_foto') === '1') {
+            // Tombol X ditekan dan tidak ada foto baru: hapus foto, kolom dikosongkan
+            $this->hapusFileFoto($siswa->foto);
+
+            $data['foto'] = null;
         }
 
         if ($request->filled('password')) {
@@ -65,5 +75,15 @@ class ProfilSiswaController extends Controller
         }
 
         return redirect()->route('siswa.profil')->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    /**
+     * Hapus file foto dari folder public/image (kalau ada)
+     */
+    private function hapusFileFoto(?string $namaFile): void
+    {
+        if ($namaFile && file_exists(public_path('image/' . $namaFile))) {
+            unlink(public_path('image/' . $namaFile));
+        }
     }
 }
