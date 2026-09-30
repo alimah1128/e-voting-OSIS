@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\PeriodeHelper;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -10,8 +11,9 @@ use Carbon\Carbon;
 class VotingController extends Controller
 {
     private const PESAN_SUDAH_VOTING = 'Anda sudah melakukan voting untuk periode ini. Suara tidak dapat diubah atau dikirim ulang.';
+    private const PESAN_VOTING_TUTUP = 'Waktu voting sudah berakhir atau belum dibuka. Suara tidak dapat dikirim.';
 
-    // Helper: ambil tahun ajaran dari periode aktif, sama seperti di DashboardController
+    // Helper: ambil tahun ajaran dari periode, sama seperti di DashboardController
     private function tahunAjaranDari($periode)
     {
         if (! $periode) {
@@ -32,28 +34,35 @@ class VotingController extends Controller
     // Halaman daftar kandidat (GET /kandidat)
     public function daftarKandidat()
     {
-        $periodeAktif = DB::table('periode_pemilihan')->where('status', 'active')->first();
+        // aktif() otomatis menonaktifkan periode yang tanggal selesainya sudah lewat
+        $periodeAktif = PeriodeHelper::aktif();
 
         $kandidats = collect();
         $sudahVoting = false;
+        $votingBuka = false;
 
         if ($periodeAktif) {
-            $kandidats = DB::table('kandidat')
-                ->where('periode_id', $periodeAktif->id)
-                ->orderBy('no_urut')
-                ->get()
-                ->map(function ($k) {
-                    $k->misi = json_decode($k->misi, true) ?? [];
-                    $k->program_kerja = json_decode($k->program_kerja, true) ?? [];
-                    return $k;
-                });
+            $votingBuka = PeriodeHelper::statusWaktu($periodeAktif) === 'berlangsung';
 
-            $sudahVoting = $this->sudahVotingDiPeriode($periodeAktif->id);
+            // Kandidat hanya ditampilkan kalau voting sedang dibuka
+            if ($votingBuka) {
+                $kandidats = DB::table('kandidat')
+                    ->where('periode_id', $periodeAktif->id)
+                    ->orderBy('no_urut')
+                    ->get()
+                    ->map(function ($k) {
+                        $k->misi = json_decode($k->misi, true) ?? [];
+                        $k->program_kerja = json_decode($k->program_kerja, true) ?? [];
+                        return $k;
+                    });
+
+                $sudahVoting = $this->sudahVotingDiPeriode($periodeAktif->id);
+            }
         }
 
-        $tahunAjaran = $this->tahunAjaranDari($periodeAktif);
+        $tahunAjaran = $this->tahunAjaranDari($periodeAktif ?? PeriodeHelper::terbaru());
 
-        return view('kandidat', compact('periodeAktif', 'kandidats', 'sudahVoting', 'tahunAjaran'));
+        return view('kandidat', compact('periodeAktif', 'kandidats', 'sudahVoting', 'votingBuka', 'tahunAjaran'));
     }
 
     // Halaman konfirmasi pilihan (GET /konfirmasi/{id})
@@ -70,11 +79,16 @@ class VotingController extends Controller
             return redirect()->route('dashboard')->with('error', self::PESAN_SUDAH_VOTING);
         }
 
+        // Kalau waktu voting sudah habis / belum mulai / periode tidak aktif
+        if (! PeriodeHelper::bisaVoting($kandidat->periode_id)) {
+            return redirect()->route('dashboard')->with('error', self::PESAN_VOTING_TUTUP);
+        }
+
         $kandidat->misi = json_decode($kandidat->misi, true) ?? [];
         $kandidat->program_kerja = json_decode($kandidat->program_kerja, true) ?? [];
 
-        $periodeAktif = DB::table('periode_pemilihan')->where('id', $kandidat->periode_id)->first();
-        $tahunAjaran = $this->tahunAjaranDari($periodeAktif);
+        $periode = DB::table('periode_pemilihan')->where('id', $kandidat->periode_id)->first();
+        $tahunAjaran = $this->tahunAjaranDari($periode);
 
         return view('konfirmasi', compact('kandidat', 'tahunAjaran'));
     }
@@ -90,6 +104,11 @@ class VotingController extends Controller
 
         if ($this->sudahVotingDiPeriode($kandidat->periode_id)) {
             return redirect()->route('dashboard')->with('error', self::PESAN_SUDAH_VOTING);
+        }
+
+        // Pengaman utama di sisi server: tolak vote kalau waktu voting sudah habis
+        if (! PeriodeHelper::bisaVoting($kandidat->periode_id)) {
+            return redirect()->route('dashboard')->with('error', self::PESAN_VOTING_TUTUP);
         }
 
         try {
@@ -113,8 +132,8 @@ class VotingController extends Controller
     // Halaman Voting Berhasil (GET /selesai)
     public function selesai()
     {
-        $periodeAktif = DB::table('periode_pemilihan')->where('status', 'active')->first();
-        $tahunAjaran = $this->tahunAjaranDari($periodeAktif);
+        $periode = PeriodeHelper::aktif() ?? PeriodeHelper::terbaru();
+        $tahunAjaran = $this->tahunAjaranDari($periode);
 
         return view('selesai', compact('tahunAjaran'));
     }

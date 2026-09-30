@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PeriodePemilihan;
+use App\Support\PeriodeHelper;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -11,6 +13,9 @@ class PeriodeController extends Controller
 {
     public function index()
     {
+        // Periode yang waktunya sudah habis otomatis jadi Inactive
+        PeriodeHelper::sinkronkanStatus();
+
         $periodes = PeriodePemilihan::orderByDesc('tanggal_mulai')->get();
         return view('admin.periode.index', compact('periodes'));
     }
@@ -47,6 +52,14 @@ class PeriodeController extends Controller
         ]);
 
         $periode = PeriodePemilihan::findOrFail($id);
+
+        // Periode yang tanggal selesainya sudah lewat tidak bisa diaktifkan lagi,
+        // karena akan langsung dinonaktifkan otomatis oleh sistem.
+        if ($request->status === 'active'
+            && Carbon::parse($periode->tanggal_selesai)->endOfDay()->isPast()) {
+            return redirect()->route('admin.periode.index')
+                ->with('error', 'Periode ini sudah melewati tanggal selesai. Ubah tanggal selesai lewat tombol Edit terlebih dahulu, lalu aktifkan lagi.');
+        }
 
         DB::transaction(function () use ($request, $periode) {
             if ($request->status === 'active') {

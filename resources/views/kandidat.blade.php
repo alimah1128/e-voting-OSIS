@@ -204,7 +204,22 @@
         .empty-state {
             background: #fff; border: 1px solid #E2E8F0; border-radius: 16px;
             padding: 50px 20px; text-align: center; color: #64748B; font-size: 13px;
+            line-height: 1.6;
         }
+
+        /* Tampilan kosong saat voting ditutup / belum dimulai */
+        .empty-state .empty-icon {
+            width: 56px; height: 56px; background: #F1F5F9; color: #64748B;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 14px; font-size: 22px;
+        }
+        .empty-state h3 { font-size: 17px; font-weight: 800; color: #0F172A; margin-bottom: 6px; }
+        .empty-state .btn-kembali {
+            display: inline-flex; align-items: center; gap: 8px; margin-top: 20px;
+            background: #00A3FF; color: #fff; text-decoration: none;
+            padding: 10px 22px; border-radius: 10px; font-weight: 700; font-size: 13px;
+        }
+        .empty-state .btn-kembali:hover { background: #0082CC; }
 
         .info-banner {
             max-width: 1200px; margin: 0 auto 20px; padding: 14px 24px;
@@ -303,7 +318,11 @@
 
     <div class="page-header">
         <h1>Daftar Pasangan Kandidat</h1>
-        <p>Baca profil kandidat dengan seksama sebelum menentukan pilihan.<br>Suara bersifat rahasia dan tidak dapat diubah.</p>
+        @if ($votingBuka)
+            <p>Baca profil kandidat dengan seksama sebelum menentukan pilihan.<br>Suara bersifat rahasia dan tidak dapat diubah.</p>
+        @else
+            <p>Saat ini tidak ada kandidat yang dapat dipilih.</p>
+        @endif
     </div>
 
     <div class="container">
@@ -314,7 +333,19 @@
         @endif
 
         @if (! $periodeAktif)
-            <div class="empty-state">Belum ada periode voting yang sedang berlangsung saat ini.</div>
+            <!-- Tidak ada periode Active (draft / inactive / belum dibuat) -->
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fa-solid fa-lock"></i></div>
+                <h3>Belum Ada Periode Voting</h3>
+                <p>Saat ini belum ada periode pemilihan yang dibuka, jadi belum ada kandidat yang dapat dipilih.</p>
+        @elseif (! $votingBuka)
+            <!-- Periode Active, tapi tanggal mulai belum tiba -->
+            <div class="empty-state">
+                <div class="empty-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                <h3>Voting Belum Dimulai</h3>
+                <p>Periode voting belum dibuka. Silakan kembali lagi saat waktu voting sudah dimulai.</p>
+                <a href="/dashboard" class="btn-kembali"><i class="fa-solid fa-arrow-left"></i> Kembali ke Dashboard</a>
+            </div>
         @elseif ($kandidats->isEmpty())
             <div class="empty-state">Belum ada kandidat yang terdaftar untuk periode ini.</div>
         @else

@@ -326,6 +326,12 @@
             margin-top: 6px;
         }
 
+        /* Badge waktu habis / belum mulai (abu-abu) */
+        .badge-timer.tutup {
+            background-color: #F1F5F9;
+            color: #64748B;
+        }
+
         /* Call To Action Box */
         .cta-card {
             background: white;
@@ -349,6 +355,12 @@
             font-size: 22px;
         }
 
+        /* Tampilan kotak saat voting ditutup / belum dimulai */
+        .cta-card.tutup .cta-icon-box {
+            background-color: #F1F5F9;
+            color: #64748B;
+        }
+
         .cta-card h2 {
             font-size: 20px;
             font-weight: 800;
@@ -362,6 +374,10 @@
             max-width: 500px;
             margin: 0 auto 24px;
             line-height: 1.6;
+        }
+
+        .cta-card.tutup p {
+            margin-bottom: 0;
         }
 
         .btn-kandidat {
@@ -499,7 +515,7 @@
     <!-- Main Content -->
     <div class="container">
 
-        <!-- Alert pesan dari sistem (mis. sudah voting, tidak bisa memilih lagi) -->
+        <!-- Alert pesan dari sistem (mis. sudah voting, waktu voting habis) -->
         @if (session('error'))
             <div class="alert-voting" role="alert">
                 <i class="fa-solid fa-circle-exclamation"></i>
@@ -523,7 +539,7 @@
                 <div class="stat-content">
                     <label>Total Kandidat</label>
                     <h3>{{ $jumlahKandidat }} Pasangan</h3>
-                    <p>Pilih satu pasangan</p>
+                    <p>{{ $votingBuka ? 'Pilih satu pasangan' : 'Tidak ada yang bisa dipilih' }}</p>
                 </div>
             </div>
 
@@ -547,7 +563,7 @@
                     <h3>{{ $periodeTeks }}</h3>
                     <p>{{ $periodeSub }}</p>
                     @if ($sisaWaktuTeks)
-                        <div class="badge-timer">
+                        <div class="badge-timer {{ $votingBuka ? '' : 'tutup' }}">
                             <i class="fa-regular fa-clock"></i> {{ $sisaWaktuTeks }}
                         </div>
                     @endif
@@ -556,18 +572,33 @@
         </div>
 
         <!-- Box Aksi Pemilihan -->
-        <div class="cta-card">
-            <div class="cta-icon-box">
-                <i class="fa-solid fa-box-archive"></i>
-            </div>
-            <h2>Gunakan Hak Pilihmu!</h2>
-            <p>Setiap suara berarti bagi kemajuan OSIS. Pelajari profil kandidat dan pilih pemimpin terbaik untuk SMK Pertiwi Kuningan.</p>
+        @if ($votingBuka)
+            <div class="cta-card">
+                <div class="cta-icon-box">
+                    <i class="fa-solid fa-box-archive"></i>
+                </div>
+                <h2>Gunakan Hak Pilihmu!</h2>
+                <p>Setiap suara berarti bagi kemajuan OSIS. Pelajari profil kandidat dan pilih pemimpin terbaik untuk SMK Pertiwi Kuningan.</p>
 
-            <!-- Link BISA DIKLIK -->
-            <a href="/kandidat" class="btn-kandidat">
-                Lihat Daftar Kandidat <i class="fa-solid fa-chevron-right"></i>
-            </a>
-        </div>
+                <!-- Link BISA DIKLIK -->
+                <a href="/kandidat" class="btn-kandidat">
+                    Lihat Daftar Kandidat <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            </div>
+        @else
+            <div class="cta-card tutup">
+                <div class="cta-icon-box">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                @if ($statusWaktu === 'belum_mulai')
+                    <h2>Voting Belum Dimulai</h2>
+                    <p>Periode voting belum dibuka. Silakan kembali lagi saat waktu voting sudah dimulai.</p>
+                @else
+                    <h2>Voting Telah Ditutup</h2>
+                    <p>Waktu voting sudah berakhir dan saat ini tidak ada kandidat yang dapat dipilih. Terima kasih atas partisipasimu.</p>
+                @endif
+            </div>
+        @endif
 
         <div class="footer-tagline">
             "SUARAMU. MASA DEPAN SEKOLAH KITA."
