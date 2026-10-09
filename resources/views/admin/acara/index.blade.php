@@ -1,0 +1,37 @@
+@extends('admin.layouts.cms')
+@section('title', 'Acara')
+
+@section('content')
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px">
+        <div><h2 class="page-title">Acara</h2><p class="page-sub">Kegiatan OSIS yang tampil di website.</p></div>
+        <a class="btn btn-primary" href="{{ route('admin.acara.create') }}">+ Tambah Acara</a>
+    </div>
+
+    <div class="card tbl-wrap">
+        <table>
+            <thead><tr><th></th><th>Acara</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+            <tbody>
+            @forelse($items as $i)
+                <tr>
+                    <td>
+                        @if($i->foto) <img class="thumb" src="{{ asset('storage/'.$i->foto) }}" alt="">
+                        @else <div class="thumb">📅</div> @endif
+                    </td>
+                    <td><b>{{ $i->judul }}</b><br><small style="color:#64748b">{{ $i->lokasi }}</small></td>
+                    <td>{{ $i->tanggal->translatedFormat('d F Y') }}</td>
+                    <td><span class="badge {{ $i->aktif ? 'b-on' : 'b-off' }}">{{ $i->aktif ? 'Tampil' : 'Disembunyikan' }}</span></td>
+                    <td class="actions">
+                        <a class="btn" href="{{ route('admin.acara.edit', $i->id) }}">Edit</a>
+                        <form method="POST" action="{{ route('admin.acara.destroy', $i->id) }}" onsubmit="return confirm('Hapus acara ini?')">
+                            @csrf @method('DELETE')
+                            <button class="btn btn-danger">Hapus</button>
+                        </form>
+                    </td>
+                </tr>
+            @empty
+                <tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:30px">Belum ada acara.</td></tr>
+            @endforelse
+            </tbody>
+        </table>
+    </div>
+@endsection
