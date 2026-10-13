@@ -9,15 +9,17 @@ use Illuminate\Support\Facades\Storage;
 
 class ProgramKerjaController extends Controller
 {
+    /** Daftar di kiri + form tambah di kanan */
     public function index()
     {
         $items = ProgramKerja::orderBy('urutan')->get();
-        return view('admin.program_kerja.index', compact('items'));
+        return view('admin.program_kerja.index', ['items' => $items, 'item' => null]);
     }
 
+    /** Form tambah ada di halaman daftar */
     public function create()
     {
-        return view('admin.program_kerja.form', ['item' => null]);
+        return redirect()->route('admin.program-kerja.index');
     }
 
     public function store(Request $request)
@@ -31,10 +33,12 @@ class ProgramKerjaController extends Controller
         return redirect()->route('admin.program-kerja.index')->with('success', 'Program kerja ditambahkan.');
     }
 
+    /** Daftar di kiri + form edit (terisi) di kanan */
     public function edit($id)
     {
-        $item = ProgramKerja::findOrFail($id);
-        return view('admin.program_kerja.form', compact('item'));
+        $items = ProgramKerja::orderBy('urutan')->get();
+        $item  = ProgramKerja::findOrFail($id);
+        return view('admin.program_kerja.index', compact('items', 'item'));
     }
 
     public function update(Request $request, $id)
@@ -57,7 +61,7 @@ class ProgramKerjaController extends Controller
         if ($item->foto) Storage::disk('public')->delete($item->foto);
         $item->delete();
 
-        return back()->with('success', 'Program kerja dihapus.');
+        return redirect()->route('admin.program-kerja.index')->with('success', 'Program kerja dihapus.');
     }
 
     private function validasi(Request $request): array

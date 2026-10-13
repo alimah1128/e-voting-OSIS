@@ -9,15 +9,17 @@ use Illuminate\Support\Facades\Storage;
 
 class AcaraController extends Controller
 {
+    /** Daftar di kiri + form tambah di kanan */
     public function index()
     {
         $items = Acara::orderByDesc('tanggal')->get();
-        return view('admin.acara.index', compact('items'));
+        return view('admin.acara.index', ['items' => $items, 'item' => null]);
     }
 
+    /** Form tambah ada di halaman daftar */
     public function create()
     {
-        return view('admin.acara.form', ['item' => null]);
+        return redirect()->route('admin.acara.index');
     }
 
     public function store(Request $request)
@@ -31,10 +33,12 @@ class AcaraController extends Controller
         return redirect()->route('admin.acara.index')->with('success', 'Acara ditambahkan.');
     }
 
+    /** Daftar di kiri + form edit (terisi) di kanan */
     public function edit($id)
     {
-        $item = Acara::findOrFail($id);
-        return view('admin.acara.form', compact('item'));
+        $items = Acara::orderByDesc('tanggal')->get();
+        $item  = Acara::findOrFail($id);
+        return view('admin.acara.index', compact('items', 'item'));
     }
 
     public function update(Request $request, $id)
@@ -57,7 +61,7 @@ class AcaraController extends Controller
         if ($item->foto) Storage::disk('public')->delete($item->foto);
         $item->delete();
 
-        return back()->with('success', 'Acara dihapus.');
+        return redirect()->route('admin.acara.index')->with('success', 'Acara dihapus.');
     }
 
     private function validasi(Request $request): array

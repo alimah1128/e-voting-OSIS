@@ -16,14 +16,17 @@ use App\Http\Controllers\Admin\HasilController;
 use App\Http\Controllers\Admin\PengaturanController;
 use App\Http\Controllers\Admin\ProgramKerjaController;
 use App\Http\Controllers\Admin\AcaraController;
+use App\Http\Controllers\Admin\GaleriController;
 use App\Http\Middleware\NoCache;
 use Illuminate\Http\Request;
 
-// Halaman utama: Website OSIS (konten dinamis dari database)
+// ================= WEBSITE OSIS (halaman publik, konten dinamis dari database) =================
 Route::get('/', [LandingController::class, 'index'])->name('landing');
-
-// Artikel acara (halaman publik)
+Route::get('/tentang', [LandingController::class, 'tentang'])->name('tentang');
+Route::get('/program', [LandingController::class, 'program'])->name('program');
+Route::get('/acara', [LandingController::class, 'acaraList'])->name('acara.index');
 Route::get('/acara/{id}', [LandingController::class, 'acara'])->name('acara.show');
+Route::get('/kontak', [LandingController::class, 'kontak'])->name('kontak');
 
 // Route Autentikasi (Guest) - Siswa
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
@@ -58,20 +61,22 @@ Route::prefix('admin')->group(function () {
 // Route Khusus Admin (Diproteksi dengan Session Admin)
 Route::prefix('admin')->name('admin.')->middleware(['cek.admin'])->group(function () {
 
-    // ---------- Beranda Admin (ringkasan konten website) ----------
-    Route::get('/beranda', function () {
-        return view('admin.beranda', [
-            'jumlahProgram' => DB::table('program_kerja')->count(),
-            'jumlahAcara'   => DB::table('acara')->count(),
-            'acaraAkan'     => DB::table('acara')->whereDate('tanggal', '>=', today())->count(),
-        ]);
-    })->name('beranda');
+    // ---------- DASHBOARD KONTEN WEBSITE ----------
+    Route::get('/beranda', [PengaturanController::class, 'beranda'])->name('beranda');
+    Route::post('/beranda', [PengaturanController::class, 'updateBeranda'])->name('beranda.update');
 
-    // ---------- KONTEN WEBSITE ----------
-    Route::get('/pengaturan', [PengaturanController::class, 'index'])->name('pengaturan.index');
-    Route::post('/pengaturan', [PengaturanController::class, 'update'])->name('pengaturan.update');
+    Route::get('/tentang', [PengaturanController::class, 'tentang'])->name('tentang');
+    Route::post('/tentang', [PengaturanController::class, 'updateTentang'])->name('tentang.update');
+
+    Route::get('/kontak', [PengaturanController::class, 'kontak'])->name('kontak');
+    Route::post('/kontak', [PengaturanController::class, 'updateKontak'])->name('kontak.update');
+
+    // alamat lama /admin/pengaturan diarahkan ke Beranda
+    Route::get('/pengaturan', fn () => redirect()->route('admin.beranda'))->name('pengaturan.index');
+
     Route::resource('program-kerja', ProgramKerjaController::class)->except('show');
     Route::resource('acara', AcaraController::class)->except('show');
+    Route::resource('galeri', GaleriController::class)->only(['index', 'store', 'update', 'destroy']);
 
     // ---------- PEMILIHAN (e-voting) ----------
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');

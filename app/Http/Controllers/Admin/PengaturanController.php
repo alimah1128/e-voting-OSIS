@@ -1,75 +1,118 @@
-@extends('admin.layouts.cms')
-@section('title', 'Pengaturan Beranda')
+<?php
 
-@section('content')
-    <h2 class="page-title">Pengaturan Beranda</h2>
-    <p class="page-sub">Teks dan foto di sini langsung tampil di halaman utama website.</p>
+namespace App\Http\Controllers\Admin;
 
-    <form method="POST" action="{{ route('admin.pengaturan.update') }}" enctype="multipart/form-data">
-        @csrf
+use App\Http\Controllers\Controller;
+use App\Models\Pengaturan;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
-        <div class="card">
-            <h3 style="margin-bottom:14px;color:var(--navy)">Bagian Atas (Hero)</h3>
+/**
+ * Pengaturan konten website, dibagi 3 halaman admin:
+ *  - Beranda  : hero (badge, judul, deskripsi, tombol, foto latar)
+ *  - Tentang  : foto, profil, visi, misi
+ *  - Kontak   : alamat, email, instagram, whatsapp
+ *
+ * Tiap halaman HANYA menyimpan kunci miliknya sendiri,
+ * jadi menyimpan Kontak tidak akan menimpa isi Beranda.
+ */
+class PengaturanController extends Controller
+{
+    /* ===================== BERANDA ===================== */
 
-            <div class="fg"><label>Badge Slogan</label>
-                <input type="text" name="hero_badge" value="{{ old('hero_badge', $data['hero_badge'] ?? '') }}" placeholder="Bergerak • Berkarya • Menginspirasi">
-                <small>Tulisan kecil di atas judul.</small></div>
+    public function beranda()
+    {
+        $data = Pengaturan::semua();
+        return view('admin.beranda', compact('data'));
+    }
 
-            <div class="row2">
-                <div class="fg"><label>Judul Baris 1 (putih)</label>
-                    <input type="text" name="hero_judul" value="{{ old('hero_judul', $data['hero_judul'] ?? '') }}" placeholder="OSIS SMK Pertiwi"></div>
-                <div class="fg"><label>Judul Baris 2 (biru muda)</label>
-                    <input type="text" name="hero_judul2" value="{{ old('hero_judul2', $data['hero_judul2'] ?? '') }}" placeholder="Kuningan"></div>
-            </div>
+    public function updateBeranda(Request $request)
+    {
+        $request->validate([
+            'hero_badge'     => 'nullable|string|max:80',
+            'hero_judul'     => 'nullable|string|max:80',
+            'hero_judul2'    => 'nullable|string|max:80',
+            'hero_tagline'   => 'nullable|string|max:300',
+            'hero_btn1_teks' => 'nullable|string|max:30',
+            'hero_btn2_teks' => 'nullable|string|max:30',
+            'hero_foto'      => 'nullable|image|max:4096',
+        ]);
 
-            <div class="fg"><label>Deskripsi</label>
-                <textarea name="hero_tagline" style="min-height:90px">{{ old('hero_tagline', $data['hero_tagline'] ?? '') }}</textarea>
-                <small>Kalimat di bawah judul.</small></div>
+        foreach (['hero_badge', 'hero_judul', 'hero_judul2', 'hero_tagline', 'hero_btn1_teks', 'hero_btn2_teks'] as $kunci) {
+            $this->simpan($kunci, $request->input($kunci) ?? '');
+        }
+        $this->urusFoto($request, 'hero_foto', 'hapus_hero_foto');
 
-            <div class="row2">
-                <div class="fg"><label>Teks Tombol 1</label>
-                    <input type="text" name="hero_btn1_teks" value="{{ old('hero_btn1_teks', $data['hero_btn1_teks'] ?? '') }}" placeholder="Tentang OSIS"></div>
-                <div class="fg"><label>Teks Tombol 2</label>
-                    <input type="text" name="hero_btn2_teks" value="{{ old('hero_btn2_teks', $data['hero_btn2_teks'] ?? '') }}" placeholder="Lihat Acara"></div>
-            </div>
+        return redirect()->route('admin.beranda')->with('success', 'Beranda diperbarui.');
+    }
 
-            <div class="fg"><label>Foto Latar Hero (foto OSIS bersama)</label>
-                @if(!empty($data['hero_foto']))
-                    <img src="{{ asset('storage/'.$data['hero_foto']) }}" alt="" style="width:100%;max-width:360px;border-radius:12px;margin-bottom:8px;display:block">
-                @endif
-                <input type="file" name="hero_foto" accept="image/*">
-                <br><small>Disarankan foto landscape, lebar minimal 1600 px, maks 4 MB. Kosongkan jika tidak ingin mengganti.</small></div>
-        </div>
+    /* ===================== TENTANG ===================== */
 
-        <div class="card">
-            <h3 style="margin-bottom:14px;color:var(--navy)">Tentang OSIS</h3>
-            <div class="fg"><label>Foto Tentang OSIS</label>
-                @if(!empty($data['tentang_foto']))
-                    <img src="{{ asset('storage/'.$data['tentang_foto']) }}" alt="" style="width:100%;max-width:280px;border-radius:12px;margin-bottom:8px;display:block">
-                @endif
-                <input type="file" name="tentang_foto" accept="image/*">
-                <br><small>Maks 4 MB. Kalau kosong, yang tampil adalah logo OSIS.</small></div>
-            <div class="fg"><label>Profil OSIS</label>
-                <textarea name="tentang_profil">{{ old('tentang_profil', $data['tentang_profil'] ?? '') }}</textarea></div>
-            <div class="fg"><label>Visi</label>
-                <textarea name="visi">{{ old('visi', $data['visi'] ?? '') }}</textarea></div>
-            <div class="fg"><label>Misi</label>
-                <textarea name="misi">{{ old('misi', $data['misi'] ?? '') }}</textarea>
-                <small>Satu baris = satu poin misi.</small></div>
-        </div>
+    public function tentang()
+    {
+        $data = Pengaturan::semua();
+        return view('admin.tentang', compact('data'));
+    }
 
-        <div class="card">
-            <h3 style="margin-bottom:14px;color:var(--navy)">Kontak</h3>
-            <div class="fg"><label>Alamat</label>
-                <input type="text" name="kontak_alamat" value="{{ old('kontak_alamat', $data['kontak_alamat'] ?? '') }}"></div>
-            <div class="row2">
-                <div class="fg"><label>Email</label>
-                    <input type="email" name="kontak_email" value="{{ old('kontak_email', $data['kontak_email'] ?? '') }}"></div>
-                <div class="fg"><label>Instagram</label>
-                    <input type="text" name="kontak_instagram" value="{{ old('kontak_instagram', $data['kontak_instagram'] ?? '') }}" placeholder="@osis_smkpertiwi"></div>
-            </div>
-        </div>
+    public function updateTentang(Request $request)
+    {
+        $request->validate([
+            'tentang_profil' => 'nullable|string',
+            'visi'           => 'nullable|string',
+            'misi'           => 'nullable|string',
+            'tentang_foto'   => 'nullable|image|max:4096',
+        ]);
 
-        <button class="btn btn-primary" type="submit">Simpan Perubahan</button>
-    </form>
-@endsection
+        foreach (['tentang_profil', 'visi', 'misi'] as $kunci) {
+            $this->simpan($kunci, $request->input($kunci) ?? '');
+        }
+        $this->urusFoto($request, 'tentang_foto', 'hapus_tentang_foto');
+
+        return redirect()->route('admin.tentang')->with('success', 'Tentang OSIS diperbarui.');
+    }
+
+    /* ===================== KONTAK ===================== */
+
+    public function kontak()
+    {
+        $data = Pengaturan::semua();
+        return view('admin.kontak', compact('data'));
+    }
+
+    public function updateKontak(Request $request)
+    {
+        $request->validate([
+            'kontak_alamat'    => 'nullable|string|max:255',
+            'kontak_email'     => 'nullable|email|max:150',
+            'kontak_instagram' => 'nullable|string|max:150',
+            'kontak_whatsapp'  => 'nullable|string|max:30',
+        ]);
+
+        foreach (['kontak_alamat', 'kontak_email', 'kontak_instagram', 'kontak_whatsapp'] as $kunci) {
+            $this->simpan($kunci, $request->input($kunci) ?? '');
+        }
+
+        return redirect()->route('admin.kontak')->with('success', 'Kontak diperbarui.');
+    }
+
+    /* ===================== HELPER ===================== */
+
+    private function simpan(string $kunci, string $nilai): void
+    {
+        Pengaturan::updateOrCreate(['kunci' => $kunci], ['nilai' => $nilai]);
+    }
+
+    /** Ganti foto kalau ada file baru, hapus foto kalau tombol Hapus dipilih. */
+    private function urusFoto(Request $request, string $kunci, string $namaHapus): void
+    {
+        $lama = Pengaturan::where('kunci', $kunci)->value('nilai');
+
+        if ($request->hasFile($kunci)) {
+            if ($lama) Storage::disk('public')->delete($lama);
+            $this->simpan($kunci, $request->file($kunci)->store('pengaturan', 'public'));
+        } elseif ($request->boolean($namaHapus)) {
+            if ($lama) Storage::disk('public')->delete($lama);
+            $this->simpan($kunci, '');
+        }
+    }
+}
