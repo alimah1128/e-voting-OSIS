@@ -6,34 +6,26 @@
     section { padding:56px 0; }
 
     /* ===== HERO ===== */
-    .hero { position:relative; min-height:92vh; display:flex; align-items:center; color:#fff;
-            border-radius:0 0 44px 44px; overflow:hidden;
-            background:linear-gradient(135deg,#0284c7,#38bdf8); background-size:cover; background-position:center; }
+    .hero { position:relative; min-height:100vh; min-height:100svh; display:flex; align-items:center; color:#fff;
+            border-radius:0 0 36px 36px; overflow:hidden;
+            background:linear-gradient(135deg,#075985,#0284c7); background-size:cover; background-position:center; }
     .hero::before { content:''; position:absolute; inset:0;
-            background:linear-gradient(90deg, rgba(7,89,133,.82) 0%, rgba(7,89,133,.45) 55%, rgba(7,89,133,.12) 100%); }
-    .hero-in { position:relative; z-index:2; max-width:1100px; width:100%; margin:0 auto; padding:120px 5% 110px; }
-    .hero-badge { display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,.18); backdrop-filter:blur(6px);
-                  padding:6px 14px 6px 8px; border-radius:999px; font-size:13px; font-weight:500; margin-bottom:18px; }
-    .hero-badge img { height:26px; background:#fff; border-radius:50%; padding:2px; }
-    .hero h1 { font-size:clamp(32px,6vw,58px); font-weight:800; line-height:1.15; max-width:640px; text-shadow:0 4px 20px rgba(0,0,0,.25); }
-    .hero .tag { margin:16px 0 28px; font-size:clamp(14px,2vw,18px); max-width:520px; opacity:.95; }
+            background:linear-gradient(90deg, rgba(3,40,84,.88) 0%, rgba(7,89,133,.68) 55%, rgba(7,89,133,.45) 100%); }
+    .hero-in { position:relative; z-index:2; max-width:1240px; width:100%; margin:0 auto; padding:130px 5% 90px; }
+    .hero-badge { display:inline-flex; align-items:center; gap:10px; background:rgba(255,255,255,.14);
+                  border:1px solid rgba(255,255,255,.3); backdrop-filter:blur(6px);
+                  padding:8px 18px; border-radius:999px; font-size:13px; font-weight:600; margin-bottom:22px; }
+    .hero-badge i { width:9px; height:9px; border-radius:50%; background:#38bdf8; display:block; flex-shrink:0; }
+    .hero h1 { font-size:clamp(34px,7vw,68px); font-weight:700; line-height:1.12; max-width:760px; }
+    .hero h1 .l2 { display:block; color:#7dd3fc; }
+    .hero .tag { margin:22px 0 30px; font-size:clamp(14px,2vw,17px); line-height:1.8; max-width:540px; opacity:.95; }
     .hero-btns { display:flex; gap:12px; flex-wrap:wrap; }
-    .btn { display:inline-block; padding:13px 30px; border-radius:999px; font-weight:600; border:none; cursor:pointer;
-           font-family:inherit; font-size:15px; color:#fff; background:linear-gradient(135deg,#00b4db,#0083b0);
-           box-shadow:0 8px 20px rgba(0,131,176,.3); transition:.2s; text-decoration:none; }
+    .btn { display:inline-block; padding:14px 28px; border-radius:999px; font-weight:600; border:none; cursor:pointer;
+           font-family:inherit; font-size:15px; color:#fff; background:linear-gradient(135deg,#00b4f0,#0090e0);
+           box-shadow:0 8px 22px rgba(0,144,224,.4); transition:.2s; text-decoration:none; }
     .btn:hover { transform:translateY(-2px); }
-    .btn-ghost { background:transparent; border:2px solid rgba(255,255,255,.85); box-shadow:none; }
-    .btn-ghost:hover { background:rgba(255,255,255,.15); }
-
-    /* ===== BAR INFO (menumpuk di bawah hero) ===== */
-    .infobar { position:relative; z-index:5; max-width:960px; margin:-58px auto 0; padding:14px;
-               background:#bfe6fa; border-radius:999px; box-shadow:0 14px 34px rgba(2,132,199,.2);
-               display:grid; grid-template-columns:repeat(3,1fr) auto; gap:12px; align-items:center; }
-    .pill { background:#fff; border-radius:999px; padding:10px 20px; text-align:center; }
-    .pill b { display:block; font-size:22px; color:var(--sky-dark); line-height:1.2; }
-    .pill span { font-size:12px; color:#64748b; }
-    .infobar .btn { padding:15px 28px; }
-    .infobar-wrap { padding:0 5%; }
+    .btn-ghost { background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.6); box-shadow:none; }
+    .btn-ghost:hover { background:rgba(255,255,255,.2); }
 
     /* ===== TENTANG ===== */
     .about { display:grid; grid-template-columns:1fr 1fr; gap:48px; align-items:center; }
@@ -79,10 +71,9 @@
 
     @media (max-width:820px){
         .about { grid-template-columns:1fr; gap:36px; }
-        .infobar { border-radius:28px; grid-template-columns:1fr 1fr; margin-top:-40px; }
-        .infobar .btn { grid-column:1/-1; }
-        .hero { min-height:80vh; border-radius:0 0 30px 30px; }
-        .hero-in { padding:110px 6% 90px; }
+        .hero { border-radius:0 0 26px 26px; }
+        .hero-in { padding:110px 6% 70px; }
+        .hero-btns .btn { flex:1 1 auto; text-align:center; }
         .about-photo .badge { left:-8px; top:-18px; width:70px; height:70px; }
     }
 </style>
@@ -90,32 +81,35 @@
 
 @section('content')
 
+    @php
+        $j1 = $p['hero_judul']  ?? '';
+        $j2 = $p['hero_judul2'] ?? '';
+        if ($j1 === '' && $j2 === '') { $j1 = 'OSIS SMK Pertiwi'; $j2 = 'Kuningan'; }
+    @endphp
+
     {{-- ===== HERO ===== --}}
     <header id="beranda" class="hero"
         @if(!empty($p['hero_foto'])) style="background-image:url('{{ asset('storage/'.$p['hero_foto']) }}')" @endif>
         <div class="hero-in">
-            <div class="hero-badge">
-                <img src="{{ asset('image/logo-osis.png') }}" alt="">
-                SMK Pertiwi Kuningan
-            </div>
-            <h1>{{ $p['hero_judul'] ?? 'OSIS SMK Pertiwi Kuningan' }}</h1>
-            <p class="tag">{{ $p['hero_tagline'] ?? '' }}</p>
+            @if(!empty($p['hero_badge']))
+                <div class="hero-badge"><i></i>{{ $p['hero_badge'] }}</div>
+            @endif
+
+            <h1>
+                {{ $j1 }}
+                @if($j2 !== '') <span class="l2">{{ $j2 }}</span> @endif
+            </h1>
+
+            @if(!empty($p['hero_tagline']))
+                <p class="tag">{{ $p['hero_tagline'] }}</p>
+            @endif
+
             <div class="hero-btns">
-                <a href="#tentang" class="btn">Tentang OSIS</a>
-                <a href="#acara" class="btn btn-ghost">Lihat Acara</a>
+                <a href="#tentang" class="btn">{{ $p['hero_btn1_teks'] ?? 'Tentang OSIS' }} →</a>
+                <a href="#acara" class="btn btn-ghost">{{ $p['hero_btn2_teks'] ?? 'Lihat Acara' }}</a>
             </div>
         </div>
     </header>
-
-    {{-- ===== BAR INFO ===== --}}
-    <div class="infobar-wrap">
-        <div class="infobar">
-            <div class="pill"><b>{{ number_format($jumlahSiswa) }}</b><span>Siswa</span></div>
-            <div class="pill"><b>{{ $programs->count() }}</b><span>Program Kerja</span></div>
-            <div class="pill"><b>{{ $jumlahAcara }}</b><span>Acara</span></div>
-            <button class="btn" onclick="toggleModal(true)">Pemilihan</button>
-        </div>
-    </div>
 
     <div class="container">
 
