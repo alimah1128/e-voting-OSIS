@@ -1,5 +1,9 @@
 @php
     $adminProfil = \App\Models\Admin::find(session('admin_id'));
+    $namaAdmin   = session('admin_nama') ?: session('admin_username');
+
+    // halaman e-voting => tombol "Pemilihan" yang menyala
+    $modePemilihan = request()->routeIs('admin.dashboard', 'admin.siswa.*', 'admin.kandidat.*', 'admin.periode.*', 'admin.hasil.*', 'admin.belumMemilih');
 @endphp
 <!DOCTYPE html>
 <html lang="id">
@@ -14,6 +18,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
+        :root { --primary:#05689f; --navy:#0b5a85; --soft:#e0f2fe; --bg:#f0f7ff; --line:#e2e8f0; }
+
         * {
             box-sizing: border-box;
             font-family: 'Poppins', sans-serif;
@@ -21,304 +27,109 @@
             padding: 0;
         }
 
-        html, body {
-            height: 100%;
-        }
-
         body {
-            background-color: #F3F8FC;
-            display: flex;
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
+            background-color: var(--bg);
+            color: #1E293B;
+            min-height: 100vh;
         }
 
-        .sidebar {
-            width: 240px;
-            background: #2D6BA0;
-            color: #fff;
-            display: flex;
-            flex-direction: column;
-            padding: 24px 0;
-            flex-shrink: 0;
-            height: 100vh;
-            height: 100dvh;
-            overflow-y: auto;
+        a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+            outline: 3px solid #7dd3fc;
+            outline-offset: 2px;
         }
 
-        .sidebar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 0 16px 24px;
-            position: relative;
-        }
-
-        .sidebar-brand img {
-            width: 72px;
-            height: 72px;
-            object-fit: contain;
-        }
-
-        .sidebar-brand .name {
-            font-size: 16px;
-            font-weight: 700;
-            line-height: 1.3;
-        }
-
-        .sidebar-brand .name span {
-            display: block;
-            font-weight: 400;
-            font-size: 13px;
-            opacity: 0.8;
-        }
-
-        /* Tombol tutup menu (hanya muncul di HP, lihat media query di bawah) */
-        .sidebar-close {
-            display: none;
-            position: absolute;
-            top: -8px;
-            right: 12px;
-            width: 34px;
-            height: 34px;
-            border-radius: 10px;
-            border: none;
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
-            font-size: 16px;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .sidebar-close:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        /* Lapisan gelap di belakang sidebar saat menu HP terbuka */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(15, 23, 42, 0.5);
-            z-index: 940;
-        }
-
-        .sidebar-overlay.active {
-            display: block;
-        }
-
-        .sidebar-menu {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 8px 12px;
-        }
-
-        .sidebar-menu a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 11px 14px;
-            border-radius: 8px;
-            color: #E2ECF7;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-            transition: background 0.15s;
-        }
-
-        .sidebar-menu a:hover,
-        .sidebar-menu a.active {
-            background: rgba(255, 255, 255, 0.15);
-            color: #fff;
-        }
-
-        .sidebar-menu a i {
-            width: 16px;
-            text-align: center;
-        }
-
-        .sidebar-logout {
-            padding: 12px;
-            border-top: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .sidebar-logout a {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 11px 14px;
-            border-radius: 8px;
-            color: #FCD9C9;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .sidebar-logout a:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-
-        .main {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            height: 100dvh;
-            overflow: hidden;
-        }
+        /* =====================================================
+           NAVBAR ATAS + SUB-TAB (sama seperti halaman Ringkasan)
+           ===================================================== */
+        .topwrap { padding: 10px 28px 0; }
 
         .topbar {
+            max-width: 1280px;
+            margin: 0 auto;
             background: #fff;
-            border-bottom: 1px solid #E2E8F0;
-            padding: 14px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-shrink: 0;
-            gap: 10px;
-        }
-
-        .topbar-left {
-            display: flex;
+            border-radius: 999px;
+            box-shadow: 0 8px 26px rgba(7, 89, 133, .12);
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
             gap: 12px;
-            min-width: 0;
+            padding: 8px 14px 8px 12px;
         }
 
-        /* Tombol hamburger (hanya muncul di HP) */
-        .btn-menu {
-            display: none;
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            border: none;
-            background: #F0F7FF;
-            color: #2D6BA0;
-            font-size: 18px;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: background 0.2s ease;
-        }
+        .topbar .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+        /* ← BARU: logo tampil utuh (tidak dipotong bulat) */
+        .topbar .brand img { height: 46px; width: auto; max-width: 52px; object-fit: contain; flex-shrink: 0; }
+        .topbar .brand b { display: block; color: var(--navy); font-size: 14px; line-height: 1.2; }
+        .topbar .brand small { display: block; color: #0284c7; font-size: 12px; }
 
-        .btn-menu:hover {
-            background: #E0F0FF;
-        }
-
-        .topbar-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;
-        }
-
-        .topbar-brand img {
-            width: 52px;
-            height: 52px;
-            object-fit: contain;
-            flex-shrink: 0;
-        }
-
-        .topbar-brand .title {
-            font-size: 17px;
-            font-weight: 700;
-            color: #14406B;
-        }
-
-        .topbar-brand .subtitle {
-            font-size: 13px;
-            color: #64748B;
-        }
-
-        .topbar-user {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 6px 10px;
-            border-radius: 10px;
-            transition: background 0.2s ease;
-            flex-shrink: 0;
-        }
-
-        .topbar-user:hover {
-            background: #F0F9FF;
-        }
-
-        .topbar-user .info {
-            text-align: right;
-        }
-
-        .topbar-user .info .name {
-            font-size: 13px;
+        .topbar .pills { display: flex; gap: 10px; justify-content: center; }
+        .topbar .pill {
+            padding: 10px 28px;
+            border-radius: 999px;
+            border: 2px solid #bae6fd;
+            color: var(--navy);
             font-weight: 600;
-            color: #1E293B;
-        }
-
-        .topbar-user .info .role {
-            font-size: 11px;
-            color: #94A3B8;
-        }
-
-        .topbar-user .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #2D6BA0;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
             font-size: 14px;
-        }
-
-        .content {
-            padding: 28px;
-            flex: 1;
-            min-width: 0;
-            overflow-y: auto;
-        }
-
-        .btn-back {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: #fff;
-            color: #2D6BA0;
             text-decoration: none;
-            font-size: 13px;
-            font-weight: 700;
-            padding: 10px 18px;
-            border-radius: 30px;
-            border: 1px solid #E2E8F0;
-            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.04);
-            margin-bottom: 20px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+            transition: .2s;
+            background: #fff;
+        }
+        .topbar .pill:hover { background: #f0f9ff; }
+        .topbar .pill.on { background: var(--primary); border-color: var(--primary); color: #fff; }
+
+        .topbar .user { display: flex; align-items: center; gap: 10px; justify-self: end; }
+        .topbar .user .who { text-align: right; line-height: 1.3; }
+        .topbar .user .who b { display: block; font-size: 13px; color: var(--navy); font-weight: 600; }
+        .topbar .user .who a { font-size: 12px; color: #b91c1c; text-decoration: none; }
+        .topbar .user .who a:hover { text-decoration: underline; }
+        .topbar .avatar {
+            width: 40px; height: 40px; border-radius: 50%; background: var(--navy); color: #fff;
+            font-weight: 700; font-size: 14px; border: none; padding: 0; cursor: pointer; overflow: hidden;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            transition: transform .2s ease, box-shadow .2s ease;
+        }
+        .topbar .avatar:hover { transform: scale(1.06); box-shadow: 0 4px 12px rgba(7, 89, 133, .3); }
+        .topbar .avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+        .subnav {
+            max-width: 1280px;
+            margin: 14px auto 0;
+            background: #fff;
+            border-radius: 16px;
+            padding: 8px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            box-shadow: 0 4px 16px rgba(2, 132, 199, .06);
+        }
+        .subnav a {
+            padding: 9px 18px;
+            border-radius: 12px;
+            background: #eef3f9;
+            color: var(--navy);
+            font-weight: 600;
+            font-size: 13.5px;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: .2s;
+        }
+        .subnav a:hover { background: #dbeafe; }
+        .subnav a.on { background: var(--primary); color: #fff; }
+
+        /* ===== ISI HALAMAN ===== */
+        .page-wrap {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 22px 28px 70px;
         }
 
-        .btn-back i {
-            transition: transform 0.2s ease;
-        }
-
-        .btn-back:hover {
-            background: #F0F9FF;
-            border-color: #BAE6FD;
-            box-shadow: 0 6px 16px rgba(45, 107, 160, 0.15);
-            transform: translateX(-4px);
-        }
-
-        .btn-back:hover i {
-            transform: translateX(-3px);
-        }
+        /* Tombol "Kembali ke Dashboard" tidak perlu lagi, sudah ada tab Ringkasan.
+           Hapus baris di bawah kalau mau dimunculkan lagi. */
+        .btn-back { display: none; }
 
         .header-action {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             justify-content: space-between;
             margin-bottom: 20px;
             flex-wrap: wrap;
@@ -326,12 +137,14 @@
         }
 
         .header-action h2 {
-            font-size: 20px;
-            color: #14406B;
+            font-size: 26px;
+            font-weight: 700;
+            line-height: 1.25;
+            color: var(--navy);
         }
 
         .header-action p {
-            font-size: 13px;
+            font-size: 14px;
             color: #64748B;
             margin-top: 2px;
         }
@@ -360,14 +173,15 @@
         }
 
         .btn-primary {
-            background: linear-gradient(90deg, #00B4DB, #0083B0);
+            background: var(--primary);
             color: #fff;
-            box-shadow: 0 4px 12px rgba(0, 131, 176, 0.25);
+            box-shadow: 0 4px 12px rgba(5, 104, 159, 0.25);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 18px rgba(0, 131, 176, 0.35);
+            filter: brightness(1.08);
+            box-shadow: 0 8px 18px rgba(5, 104, 159, 0.35);
         }
 
         .btn-primary:active {
@@ -426,7 +240,7 @@
             padding: 10px 14px;
             border-radius: 10px;
             border: 1px solid #E2E8F0;
-            background: #F8FAFC;
+            background: #fff;
             font-size: 13px;
             color: #334155;
             outline: none;
@@ -451,7 +265,7 @@
             background: #fff;
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 6px 22px rgba(2, 132, 199, 0.07);
         }
 
         .table thead {
@@ -932,7 +746,7 @@
             background: #fff;
             border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+            box-shadow: 0 6px 22px rgba(2, 132, 199, 0.07);
             transition: box-shadow 0.3s ease, transform 0.3s ease;
         }
 
@@ -1295,61 +1109,9 @@
         /* =====================================================
            RESPONSIF: TABLET & HP
            ===================================================== */
-
-        /* Tablet & HP: sidebar jadi menu geser (hamburger) */
         @media (max-width: 900px) {
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                bottom: 0;
-                width: min(260px, 82vw);
-                z-index: 950;
-                transform: translateX(-100%);
-                transition: transform 0.25s ease;
-                box-shadow: none;
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-                box-shadow: 8px 0 30px rgba(0, 0, 0, 0.25);
-            }
-
-            .sidebar-brand img {
-                width: 56px;
-                height: 56px;
-            }
-
-            .sidebar-close {
-                display: flex;
-            }
-
-            .btn-menu {
-                display: inline-flex;
-            }
-
-            .topbar {
-                padding: 10px 16px;
-            }
-
-            .topbar-brand img {
-                width: 40px;
-                height: 40px;
-            }
-
-            .topbar-brand .title {
-                font-size: 15px;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            .topbar-brand .subtitle {
-                font-size: 11px;
-            }
-
-            .content {
-                padding: 18px 16px;
+            .page-wrap {
+                padding: 18px 16px 60px;
             }
 
             /* Tabel lebar: bisa digeser ke samping, halaman tidak ikut melebar */
@@ -1369,14 +1131,21 @@
             }
         }
 
-        /* HP */
+        @media (max-width: 760px) {
+            .topwrap { padding: 8px 12px 0; }
+            .topbar { grid-template-columns: 1fr auto; border-radius: 26px; padding: 8px 12px; }
+            .topbar .pills { grid-column: 1 / -1; grid-row: 2; }
+            .topbar .pills .pill { flex: 1; text-align: center; padding: 9px 12px; }
+            .topbar .user .who b { display: none; }
+        }
+
         @media (max-width: 600px) {
             .hasil-stat-cards {
                 grid-template-columns: 1fr;
             }
 
             .header-action h2 {
-                font-size: 17px;
+                font-size: 22px;
             }
 
             .btn-group {
@@ -1421,66 +1190,46 @@
             }
         }
 
-        /* HP kecil: topbar cuma tampilkan avatar admin */
-        @media (max-width: 480px) {
-            .topbar-brand .subtitle {
-                display: none;
-            }
-
-            .topbar-user .info {
-                display: none;
-            }
-
-            .topbar-user {
-                padding: 4px;
-            }
-
-            .topbar-brand .title {
-                font-size: 13px;
-            }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { transition-duration: .01ms !important; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Lapisan gelap di belakang menu HP -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="tutupSidebar()"></div>
+    <div class="topwrap">
+        <header class="topbar">
+            <a href="{{ route('admin.beranda') }}" class="brand">
+                <img src="{{ asset('image/logo-osis.png') }}" alt="Logo OSIS">
+                <div><b>OSIS SMK Pertiwi</b><small>Kuningan</small></div>
+            </a>
 
-    @include('admin.partials.sidebar')
+            <nav class="pills">
+                <a href="{{ route('admin.beranda') }}" class="pill {{ $modePemilihan ? '' : 'on' }}">Dashboard</a>
+                <a href="{{ route('admin.dashboard') }}" class="pill {{ $modePemilihan ? 'on' : '' }}">Pemilihan</a>
+            </nav>
 
-    <div class="main">
-        <div class="topbar">
-            <div class="topbar-left">
-                <button type="button" class="btn-menu" onclick="bukaSidebar()" aria-label="Buka menu">
-                    <i class="fa-solid fa-bars"></i>
+            <div class="user">
+                <div class="who">
+                    <b>{{ $namaAdmin }}</b>
+                    <a href="#" onclick="event.preventDefault(); bukaModalLogout();">Logout</a>
+                </div>
+                <button type="button" class="avatar" onclick="bukaModalProfil()" title="Profil Admin" aria-label="Buka profil admin">
+                    @if (session('admin_foto'))
+                        <img src="{{ asset('image/' . session('admin_foto')) }}" alt="Foto Admin">
+                    @else
+                        {{ strtoupper(substr($namaAdmin, 0, 1)) }}
+                    @endif
                 </button>
-
-                <div class="topbar-brand">
-                    <img src="{{ asset('image/logo-osis.png') }}" alt="Logo">
-                    <div>
-                        <div class="title">OSIS SMK Pertiwi Kuningan</div>
-                        <div class="subtitle">Panel Admin E-Voting</div>
-                    </div>
-                </div>
             </div>
+        </header>
 
-            <button type="button" class="topbar-user" onclick="bukaModalProfil()" style="background:none; border:none; cursor:pointer;">
-                <div class="info">
-                    <div class="name">{{ session('admin_nama') ?: session('admin_username') }}</div>
-                    <div class="role">Administrator</div>
-                </div>
-                @if (session('admin_foto'))
-                    <img src="{{ asset('image/' . session('admin_foto')) }}" class="avatar" style="object-fit:cover;" alt="Foto Admin">
-                @else
-                    <div class="avatar">{{ strtoupper(substr(session('admin_nama') ?: session('admin_username'), 0, 1)) }}</div>
-                @endif
-            </button>
-        </div>
-
-        <div class="content">
-            @yield('content')
-        </div>
+        @include('admin.partials.subnav')
     </div>
+
+    <main class="page-wrap">
+        @yield('content')
+    </main>
 
     <!-- MODAL PROFIL ADMIN (tersedia di semua halaman admin) -->
     <div class="modal-overlay" id="modalProfil">
@@ -1587,27 +1336,8 @@
     </div>
 
     <script>
-        // ===== Menu samping (hamburger di HP) =====
-        function bukaSidebar() {
-            document.getElementById('sidebar').classList.add('open');
-            document.getElementById('sidebarOverlay').classList.add('active');
-        }
-        function tutupSidebar() {
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('sidebarOverlay').classList.remove('active');
-        }
-
-        // Tutup menu dengan tombol Esc, dan otomatis tertutup kalau layar dibesarkan
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape') tutupSidebar();
-        });
-        window.addEventListener('resize', function () {
-            if (window.innerWidth > 900) tutupSidebar();
-        });
-
         // ===== Modal Logout & Profil =====
         function bukaModalLogout() {
-            tutupSidebar();
             document.getElementById('modalLogout').style.display = 'flex';
         }
         function tutupModalLogout() {
@@ -1620,6 +1350,10 @@
         function tutupModalProfil() {
             document.getElementById('modalProfil').style.display = 'none';
         }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') tutupModalLogout();
+        });
 
         function previewFotoProfil(input) {
             if (input.files && input.files[0]) {

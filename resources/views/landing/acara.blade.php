@@ -3,17 +3,17 @@
 
 @push('styles')
 <style>
-    .detail { max-width:820px; margin:0 auto; }
-    .detail-img { width:100%; max-height:420px; object-fit:cover; border-radius:24px; box-shadow:0 14px 34px rgba(2,132,199,.18); margin-bottom:24px; display:block; }
-    .meta { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:22px; }
-    .meta span { background:#fff; border-radius:999px; padding:8px 16px; font-size:13px; color:#475569;
-                 box-shadow:0 4px 12px rgba(2,132,199,.08); }
-    .meta span.status { background:#e0f2fe; color:var(--sky-dark); font-weight:600; }
+    .detail { max-width:780px; margin:0 auto; }
+    .detail-img { width:100%; max-height:300px; object-fit:cover; border-radius:18px; box-shadow:0 6px 20px rgba(2,132,199,.14); margin-bottom:14px; display:block; }
+    .meta { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:14px; }
+    .meta span { background:#fff; border-radius:999px; padding:6px 13px; font-size:12.5px; color:#475569;
+                 box-shadow:0 3px 10px rgba(2,132,199,.07); }
+    .meta span.status { background:#e0f2fe; color:var(--brand); font-weight:600; }
     .meta span.status.selesai { background:#f1f5f9; color:#64748b; }
-    .isi { background:#fff; border-radius:24px; padding:30px; box-shadow:0 8px 24px rgba(2,132,199,.08);
-           color:#475569; line-height:1.9; font-size:15px; }
-    .back { margin-top:24px; }
-    @media (max-width:820px){ .isi { padding:22px; } }
+    .isi { background:#fff; border-radius:18px; padding:20px; box-shadow:0 4px 16px rgba(2,132,199,.07);
+           color:#475569; line-height:1.8; font-size:14.5px; }
+    .back { margin-top:16px; }
+    @media (max-width:820px){ .isi { padding:16px; } .detail-img { max-height:220px; } }
 </style>
 @endpush
 
@@ -50,7 +50,7 @@
 
     @if($lainnya->count())
     <div class="container">
-        <section class="band" style="padding:50px 4%;">
+        <section class="band" style="padding:26px 4%;">
             <div class="sec-head">
                 <div><h2>Acara Lainnya</h2></div>
                 <a href="{{ route('acara.index') }}">Lihat semua acara</a>

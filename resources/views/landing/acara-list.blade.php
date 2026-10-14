@@ -3,12 +3,12 @@
 
 @push('styles')
 <style>
-    .filter { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:28px; }
-    .filter button { font-family:inherit; font-size:14px; font-weight:600; padding:10px 22px; border-radius:999px; cursor:pointer;
+    .filter { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:18px; }
+    .filter button { font-family:inherit; font-size:13px; font-weight:600; padding:7px 16px; border-radius:999px; cursor:pointer;
                      border:1.5px solid #bae6fd; background:#fff; color:var(--sky-dark); transition:.2s; }
     .filter button:hover { background:#f0f9ff; }
-    .filter button.on { background:linear-gradient(135deg,#00b4f0,#0090e0); color:#fff; border-color:transparent;
-                        box-shadow:0 6px 16px rgba(0,144,224,.3); }
+    .filter button.on { background:var(--brand); color:#fff; border-color:transparent;
+                        box-shadow:0 4px 10px rgba(3,105,161,.25); }
     .art[hidden] { display:none; }
 </style>
 @endpush
