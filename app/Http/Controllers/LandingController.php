@@ -9,13 +9,13 @@ use App\Models\ProgramKerja;
 
 class LandingController extends Controller
 {
-    /** Beranda: hero + ringkasan (3 program, 3 acara terbaru, galeri) */
+    /** Beranda: hero + ringkasan (maks 9 program & 9 acara terbaru untuk slider, galeri) */
     public function index()
     {
         $p = Pengaturan::semua();
 
-        $programs = ProgramKerja::where('aktif', true)->orderBy('urutan')->take(3)->get();
-        $acaras   = Acara::where('aktif', true)->orderByDesc('tanggal')->take(3)->get();
+        $programs = ProgramKerja::where('aktif', true)->orderBy('urutan')->take(9)->get();
+        $acaras   = Acara::where('aktif', true)->orderByDesc('tanggal')->take(9)->get();
         $galeri   = Galeri::orderByDesc('id')->take(8)->get();
 
         return view('landing.index', compact('p', 'programs', 'acaras', 'galeri'));
