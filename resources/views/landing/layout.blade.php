@@ -29,7 +29,7 @@
         :root { --sky:#38bdf8; --sky-dark:#0284c7; --brand:#0369a1; --navy:#075985; --deep:#053a5c; --bg:#eef6fd; --soft:#e0f2fe; }
         * { box-sizing:border-box; margin:0; padding:0; }
         html { scroll-behavior:smooth; }
-        /* ← BARU: body setinggi layar, footer didorong ke bawah */
+        /* body setinggi layar, footer didorong ke bawah */
         body { font-family:'Poppins',sans-serif; background:var(--bg); color:#1e293b;
                min-height:100vh; min-height:100dvh; display:flex; flex-direction:column; }
         body.no-scroll { overflow:hidden; }
@@ -84,10 +84,9 @@
         .drawer-links a.active .ic { background:#fff; }
         .drawer-foot { padding-top:12px; border-top:1px solid var(--soft); }
         .drawer-foot .cta { width:100%; padding:11px; font-size:14px; }
-        .drawer-foot small { display:block; text-align:center; color:#94a3b8; font-size:11.5px; margin-top:8px; }
 
         /* ===== KOMPONEN BERSAMA ===== */
-        /* ← BARU: width:100% supaya tidak menyusut di dalam body flex */
+        /* width:100% supaya tidak menyusut di dalam body flex */
         .container { width:100%; max-width:1100px; margin:0 auto; padding:0 5%; }
         .btn { display:inline-block; padding:10px 22px; border-radius:999px; font-weight:600; border:none; cursor:pointer;
                font-family:inherit; font-size:14px; color:#fff; background:var(--brand);
@@ -152,8 +151,8 @@
         .page-banner p { margin-top:6px; max-width:560px; line-height:1.7; color:#475569; font-size:14px; }
 
         /* ===== FOOTER (ramping, selalu menempel di bawah) ===== */
-        /* ← BARU: margin-top:auto mendorong footer ke dasar layar */
-        .footer { margin-top:auto; background:#fff; border-radius:24px 24px 0 0; padding-top:16px;
+        /* margin-top:auto mendorong footer ke dasar layar */
+        .footer { margin-top:auto; background:#fff; border-radius:24px 24px 0 0; padding:16px 0 18px;
                   box-shadow:0 -4px 18px rgba(3,105,161,.07); color:#475569; }
         .foot-top { display:flex; align-items:center; justify-content:space-between; gap:10px 24px; flex-wrap:wrap; }
         .foot-brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
@@ -164,8 +163,6 @@
         .foot-links a { color:#475569; text-decoration:none; font-size:13px; padding:5px 11px; border-radius:999px; transition:.2s; display:block; }
         .foot-links a:hover { background:var(--soft); color:var(--brand); }
         .foot-contact { display:flex; flex-wrap:wrap; gap:4px 18px; font-size:12.5px; color:#64748b; margin-top:10px; }
-        .foot-bottom { border-top:1px solid var(--soft); text-align:center; padding:10px 5%; margin-top:12px;
-                       font-size:12px; color:#94a3b8; }
 
         /* ===== MODAL PEMILIHAN ===== */
         .modal { position:fixed; inset:0; background:rgba(7,89,133,.4); display:none;
@@ -262,7 +259,6 @@
 
         <div class="drawer-foot">
             <button class="cta" onclick="closeDrawer(); toggleModal(true)">Pemilihan ▾</button>
-            <small>© {{ date('Y') }} OSIS SMK Pertiwi Kuningan</small>
         </div>
     </aside>
 
@@ -292,7 +288,6 @@
                 </div>
             @endif
         </div>
-        <div class="foot-bottom">© {{ date('Y') }} OSIS SMK Pertiwi Kuningan</div>
     </footer>
 
     {{-- ===== MODAL PILIHAN LOGIN ===== --}}
