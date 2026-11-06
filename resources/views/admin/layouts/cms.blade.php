@@ -18,7 +18,7 @@
         a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline:3px solid #7dd3fc; outline-offset:2px; }
 
         /* ===== NAVBAR ATAS ===== */
-        .topwrap { padding:10px 28px 0; }
+        .topwrap { position:sticky; top:0; z-index:100; padding:10px 28px 12px; background:var(--bg); }
         .topbar { max-width:1280px; margin:0 auto; background:#fff; border-radius:999px; box-shadow:0 8px 26px rgba(7,89,133,.12);
                   display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:12px; padding:8px 14px 8px 12px; }
         .brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
@@ -50,6 +50,14 @@
         .subnav a:hover { background:#dbeafe; }
         .subnav a.on { background:var(--primary); color:#fff; }
 
+        .thumb-preview { position:relative; display:block; width:44px; height:44px; padding:0; border:0; background:none; border-radius:10px; cursor:zoom-in; overflow:hidden; }
+        .thumb-preview img { width:100%; height:100%; object-fit:cover; }
+        .thumb-preview:hover::after, .thumb-preview:focus-visible::after { content:'⌕'; position:absolute; inset:0; display:grid; place-items:center; background:#0008; color:#fff; font-size:26px; }
+        .thumb-preview:focus-visible { outline:none; }
+        #adminImagePreview { position:fixed; inset:0; z-index:500; display:none; align-items:center; justify-content:center; padding:24px; background:#000c; cursor:zoom-out; }
+        #adminImagePreview.open { display:flex; }
+        #adminImagePreview img { max-width:94vw; max-height:92vh; object-fit:contain; border-radius:12px; }
+
         /* ===== ISI HALAMAN ===== */
         .page { max-width:1280px; margin:0 auto; padding:22px 28px 70px; }
         .page-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; margin-bottom:20px; }
@@ -64,11 +72,16 @@
 
         .alert { background:#dcfce7; color:#166534; padding:12px 18px; border-radius:14px; margin-bottom:18px; font-size:14px; }
         .err { background:#fee2e2; color:#991b1b; padding:12px 18px; border-radius:14px; margin-bottom:18px; font-size:13px; }
+        .toast { position:fixed; right:24px; bottom:24px; z-index:300; max-width:min(360px,calc(100vw - 32px)); padding:13px 18px; border-radius:14px; background:#166534; color:#fff; box-shadow:0 8px 28px rgba(15,23,42,.2); font-size:13px; animation:toast-in .2s ease-out; }
+        .toast.error { background:#991b1b; }
+        @keyframes toast-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+        @media (prefers-reduced-motion:reduce) { .toast { animation:none; } }
 
         /* tombol */
         .btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:999px; border:none; cursor:pointer;
                font-family:inherit; font-size:13px; font-weight:600; text-decoration:none; background:#e2e8f0; color:#334155; transition:.2s; }
         .btn:hover { filter:brightness(.97); transform:translateY(-1px); }
+        .btn:disabled { background:#e2e8f0 !important; color:#94a3b8 !important; cursor:not-allowed; filter:none; transform:none; }
         .btn-primary { background:var(--primary); color:#fff; }
         .btn-soft { background:var(--soft); color:#075985; }
         .btn-danger { background:#fee2e2; color:#b91c1c; }
@@ -208,13 +221,13 @@
     </div>
 
     <main class="page">
-        @if(session('success')) <div class="alert">{{ session('success') }}</div> @endif
-        @if($errors->any())
-            <div class="err">@foreach($errors->all() as $e) <div>• {{ $e }}</div> @endforeach</div>
-        @endif
-
         @yield('content')
     </main>
+    @if(session('success') || $errors->any())
+        <div class="toast {{ $errors->any() ? 'error' : '' }}" role="status" aria-live="polite">
+            @if(session('success')) {{ session('success') }} @else {{ $errors->first() }} @endif
+        </div>
+    @endif
 
     {{-- ===== MODAL PROFIL ADMIN ===== --}}
     <div class="mprofil" id="modalProfil" onclick="if(event.target===this)tutupModalProfil()">
@@ -300,6 +313,9 @@
     </div>
 
     <script>
+        document.querySelector('.toast')?.addEventListener('click', function () { this.remove(); });
+        if (document.querySelector('.toast')) setTimeout(function () { document.querySelector('.toast')?.remove(); }, 4000);
+
         function bukaModalLogout()  { document.getElementById('modalLogout').classList.add('open'); }
         function tutupModalLogout() { document.getElementById('modalLogout').classList.remove('open'); }
         function bukaModalProfil()  { document.getElementById('modalProfil').classList.add('open'); }
@@ -339,6 +355,13 @@
             tombol.textContent = tersembunyi ? 'Sembunyikan' : 'Lihat';
         }
 
+        function previewFotoTerpilih(input, imgId) {
+            var img = document.getElementById(imgId);
+            if (!input.files || !input.files[0] || !img) return;
+            img.src = URL.createObjectURL(input.files[0]);
+            img.hidden = false;
+        }
+
         /* Pratinjau foto yang baru dipilih di dalam kotak foto (dipakai halaman konten) */
         function previewFoto(input, boxId) {
             var box = document.getElementById(boxId);
@@ -355,6 +378,31 @@
         @if (session('success_profil') || $errors->profilForm->any())
             document.addEventListener('DOMContentLoaded', function () { bukaModalProfil(); });
         @endif
+    </script>
+    <div id="adminImagePreview" role="dialog" aria-modal="true" aria-label="Preview foto">
+        <button type="button" aria-label="Tutup preview" style="position:absolute;top:20px;right:20px;border:0;border-radius:50%;width:42px;height:42px;font-size:26px;cursor:pointer">&times;</button>
+        <img alt="">
+    </div>
+    <script>
+        document.addEventListener('click', function (event) {
+            var button = event.target.closest('.thumb-preview'), modal = document.getElementById('adminImagePreview');
+            if (button) {
+                var image = modal.querySelector('img');
+                image.src = button.dataset.src;
+                image.alt = button.getAttribute('aria-label') || 'Preview foto';
+                modal.classList.add('open');
+            } else if (modal.classList.contains('open') && (event.target === modal || event.target.closest('button'))) {
+                modal.classList.remove('open');
+                modal.querySelector('img').removeAttribute('src');
+            }
+        });
+        document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape') {
+                var modal = document.getElementById('adminImagePreview');
+                modal.classList.remove('open');
+                modal.querySelector('img').removeAttribute('src');
+            }
+        });
     </script>
     @stack('scripts')
 </body>

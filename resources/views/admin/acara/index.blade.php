@@ -29,7 +29,10 @@
                     @endphp
                     <tr class="{{ $item && $item->id === $i->id ? 'row-on' : '' }}">
                         <td>
-                            @if($i->foto) <img class="thumb" src="{{ asset('storage/'.$i->foto) }}" alt="">
+                            @if($i->foto)
+                                <button type="button" class="thumb-preview" data-src="{{ asset('storage/'.$i->foto) }}" aria-label="Preview foto {{ $i->judul }}">
+                                    <img class="thumb" src="{{ asset('storage/'.$i->foto) }}" alt="Foto {{ $i->judul }}" loading="lazy">
+                                </button>
                             @else <div class="thumb ph">📅</div> @endif
                         </td>
                         <td class="judul">
