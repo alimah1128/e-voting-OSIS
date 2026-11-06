@@ -39,15 +39,27 @@ class GaleriController extends Controller
         return redirect()->route('admin.galeri.index')->with('success', $n . ' foto ditambahkan.');
     }
 
-    /** Edit keterangan foto */
+    /** Edit foto dan keterangannya */
     public function update(Request $request, $id)
     {
-        $request->validate(['keterangan' => 'nullable|string|max:150']);
+        $request->validate([
+            'foto' => 'nullable|image|max:4096',
+            'keterangan' => 'nullable|string|max:150',
+        ], [
+            'foto.image' => 'Berkas harus berupa gambar.',
+            'foto.max' => 'Ukuran foto maksimal 4 MB.',
+        ]);
 
         $item = Galeri::findOrFail($id);
-        $item->update(['keterangan' => $request->input('keterangan')]);
+        if ($request->hasFile('foto')) {
+            $fotoLama = $item->foto;
+            $item->foto = $request->file('foto')->store('galeri', 'public');
+            if ($fotoLama) Storage::disk('public')->delete($fotoLama);
+        }
+        $item->keterangan = $request->input('keterangan');
+        $item->save();
 
-        return redirect()->route('admin.galeri.index')->with('success', 'Keterangan foto diperbarui.');
+        return redirect()->route('admin.galeri.index')->with('success', 'Foto dan keterangan diperbarui.');
     }
 
     public function destroy($id)
