@@ -27,9 +27,35 @@
     #dlgFoto img { display:block; max-width:100%; max-height:100%; width:auto; height:auto; margin:auto; object-fit:contain; border-radius:10px; }
     #btnTutupFoto { position:absolute; top:0; right:0; width:42px; height:42px; border:0; border-radius:50%; background:#fff; color:#111827; font-size:28px; line-height:1; cursor:pointer; }
     @media (prefers-reduced-motion:reduce) { .gcard .photo-preview::after { transition:none; } }
-    #previewFoto img { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:10px; }
-    #previewFoto { display:grid; grid-template-columns:repeat(auto-fill,minmax(100px,1fr)); gap:8px; margin-top:14px; }
-    #previewFoto img { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:10px; }
+    #namaFoto { margin:12px 0 0; min-height:18px; font-weight:600; color:var(--navy); }
+    #previewFoto { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:12px; }
+    #previewFoto:empty { display:none; }
+    #previewFoto { align-items:flex-start; }
+    .pv { position:relative; width:calc(50% - 6px); }
+    .pv img { display:block; width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:16px; box-shadow:0 4px 14px rgba(2,132,199,.22); background:#e0f2fe; }
+    /* ===== Setelah foto dipilih: kotak jadi foto penuh, tanpa teks ===== */
+    .drop { position:relative; }
+    .drop.has-foto { padding:0; overflow:hidden; background:#000; }
+    .drop.has-foto > b, .drop.has-foto > p:not(.drop-warn), .drop.has-foto #lblPilih,
+    .drop.has-foto .drop-tools, .drop.has-foto .pv small { display:none; }
+    .drop.has-foto #previewFoto { margin:0; gap:4px; width:100%; }
+    .drop.has-foto .pv { width:calc(50% - 2px); }
+    .drop.has-foto .pv img { border-radius:0; box-shadow:none; }
+    .drop.has-foto .pv.single { width:100%; }
+    .drop.has-foto .pv.single img { aspect-ratio:4/3; object-fit:cover; }
+    .drop.has-foto .pv-x { top:12px; right:12px; width:32px; height:32px; font-size:18px; }
+    .drop.has-foto .drop-warn { position:absolute; left:12px; right:70px; bottom:12px; margin:0; padding:6px 10px; border-radius:10px; background:#fee2e2; text-align:left; }
+    .pv-add { display:none; position:absolute; right:12px; bottom:12px; width:44px; height:44px; border-radius:50%; background:var(--primary); color:#fff;
+              font-size:26px; line-height:1; cursor:pointer; align-items:center; justify-content:center; box-shadow:0 4px 14px rgba(0,0,0,.3); }
+    .drop.has-foto .pv-add { display:flex; }
+    .drop.has-foto .pv-add[hidden] { display:none !important; }
+    .pv .pv-x { position:absolute; top:8px; right:8px; width:26px; height:26px; border-radius:50%; border:2px solid #fff; background:#dc2626; color:#fff;
+                font-size:15px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,.2); transition:.15s; padding:0; }
+    .pv .pv-x:hover { background:#b91c1c; transform:scale(1.12); }
+    .pv small { display:block; margin-top:6px; font-size:11px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .drop-tools { display:flex; gap:8px; justify-content:center; margin-top:14px; flex-wrap:wrap; }
+    .drop-warn { margin-top:10px; font-size:12px; color:#b91c1c; }
+    .drop-warn:empty { display:none; }
     .gcard .cap { font-size:12.5px; color:#64748b; margin:10px 4px; min-height:34px; word-break:break-word; }
     .gcard .cap.none { color:#cbd5e1; font-style:italic; }
     .gcard .actions { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
@@ -40,8 +66,15 @@
     .sub-head span { color:#64748b; font-size:13px; }
     dialog { position:fixed; inset:0; margin:auto; border:none; border-radius:20px; padding:24px; width:min(92vw,420px); max-height:90vh; box-shadow:0 20px 50px rgba(0,0,0,.25); font-family:inherit; }
     dialog::backdrop { background:rgba(7,89,133,.45); }
-    .dlg-actions { display:flex; gap:8px; } .dlg-actions .btn { min-width:90px; justify-content:center; }
-    .dlg-text { color:#64748b; margin:0 0 18px; font-size:14px; }
+    #dlgHapus { width:min(92vw,380px); padding:30px 28px 26px; text-align:center; }
+    .hapus-ic { width:58px; height:58px; margin:0 auto 14px; border-radius:50%; background:#fee2e2; display:grid; place-items:center; font-size:26px; }
+    #dlgHapus h3 { color:#0f172a; font-size:18px; margin-bottom:6px; }
+    .dlg-text { color:#64748b; margin:0 0 16px; font-size:13.5px; line-height:1.6; }
+    .hapus-prev { display:flex; align-items:center; gap:12px; text-align:left; padding:8px; margin-bottom:20px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; }
+    .hapus-prev img { width:60px; height:60px; border-radius:10px; object-fit:cover; flex-shrink:0; }
+    .hapus-prev span { font-size:12.5px; color:#475569; word-break:break-word; }
+    .dlg-actions { display:flex; gap:10px; } .dlg-actions .btn { flex:1; justify-content:center; padding:11px 16px; }
+    .btn-hapus { background:#dc2626; color:#fff; } .btn-hapus:hover { background:#b91c1c; }
     @media (max-width:1000px){ .gal { grid-template-columns:repeat(3,1fr); } }
     @media (max-width:760px){ .up { grid-template-columns:1fr; } .gal { grid-template-columns:repeat(2,1fr); gap:12px; } }
 </style>
@@ -65,6 +98,11 @@
                 <input type="file" id="fileGaleri" name="foto[]" accept="image/*" multiple hidden>
                 <p id="namaFoto" aria-live="polite"></p>
                 <div id="previewFoto" aria-label="Preview foto terpilih"></div>
+                <div class="drop-tools">
+                    <button type="button" class="btn btn-outline btn-sm" id="btnBatalSemua" hidden>Batalkan semua</button>
+                </div>
+                <p class="drop-warn" id="peringatan" role="alert"></p>
+                <label for="fileGaleri" class="pv-add" id="btnTambah" title="Tambah foto lagi" aria-label="Tambah foto lagi">+</label>
             </div>
             <div class="fg" style="margin:0">
                 <label class="lb" for="keterangan">Keterangan foto (opsional)</label>
@@ -96,10 +134,10 @@
                                 data-url="{{ route('admin.galeri.update', $g->id) }}"
                                 data-ket="{{ $g->keterangan }}"
                                 data-foto="{{ asset('storage/'.$g->foto) }}">Edit</button>
-                        <form method="POST" action="{{ route('admin.galeri.destroy', $g->id) }}" class="form-hapus">
-                            @csrf @method('DELETE')
-                            <button class="btn btn-danger btn-sm" type="submit">Hapus</button>
-                        </form>
+                        <button type="button" class="btn btn-danger btn-sm btn-hapus-foto"
+                                data-url="{{ route('admin.galeri.destroy', $g->id) }}"
+                                data-foto="{{ asset('storage/'.$g->foto) }}"
+                                data-ket="{{ $g->keterangan ?: 'Tanpa keterangan' }}">Hapus</button>
                     </div>
                 </div>
             @endforeach
@@ -134,13 +172,18 @@
     </dialog>
 
     <dialog id="dlgHapus" aria-labelledby="judulHapus">
-        <h3 id="judulHapus" style="color:var(--navy);margin-bottom:8px">Hapus foto?</h3>
-        <p class="dlg-text">Foto yang dihapus tidak dapat dikembalikan.</p>
-        <form method="POST" id="formHapus">
+        <div class="hapus-ic" aria-hidden="true">🗑️</div>
+        <h3 id="judulHapus">Hapus foto ini?</h3>
+        <p class="dlg-text">Foto akan dihapus permanen dari galeri dan tidak dapat dikembalikan.</p>
+        <div class="hapus-prev">
+            <img id="hapusImg" alt="">
+            <span id="hapusKet"></span>
+        </div>
+        <form method="POST" id="formHapus" action="">
             @csrf @method('DELETE')
             <div class="dlg-actions">
-                <button class="btn btn-danger" type="submit">Hapus</button>
                 <button class="btn" type="button" id="btnBatalHapus">Batal</button>
+                <button class="btn btn-hapus" type="submit" id="btnYaHapus">Ya, Hapus</button>
             </div>
         </form>
     </dialog>
@@ -152,41 +195,71 @@
         var form = document.getElementById('formUnggah'),
             input = document.getElementById('fileGaleri'),
             drop = document.getElementById('drop'),
-            lbl = document.getElementById('lblPilih'),
             btnSimpan = document.getElementById('btnSimpan'),
+            btnBatalSemua = document.getElementById('btnBatalSemua'),
             namaFoto = document.getElementById('namaFoto'),
+            peringatan = document.getElementById('peringatan'),
             previewFoto = document.getElementById('previewFoto'),
-            previewUrls = [];
+            MAKS_FOTO = 20, MAKS_MB = 4,
+            terpilih = [], urls = [];
 
-        function tampilkanPreview() {
-            previewUrls.forEach(function (url) { URL.revokeObjectURL(url); });
-            previewUrls = [];
+        function kunci(f) { return f.name + '|' + f.size + '|' + f.lastModified; }
+
+        // sinkronkan daftar `terpilih` ke input file asli (yang ikut terkirim saat disimpan)
+        function sinkronkanInput() {
+            var dt = new DataTransfer();
+            terpilih.forEach(function (f) { dt.items.add(f); });
+            input.files = dt.files;
+        }
+
+        function render() {
+            urls.forEach(function (u) { URL.revokeObjectURL(u); });
+            urls = [];
             previewFoto.replaceChildren();
-            Array.from(input.files).forEach(function (file) {
-                if (!file.type.startsWith('image/')) return;
-                var url = URL.createObjectURL(file), img = document.createElement('img');
-                previewUrls.push(url);
-                img.src = url;
-                img.alt = file.name;
-                img.title = file.name;
-                previewFoto.appendChild(img);
+            terpilih.forEach(function (file, i) {
+                var url = URL.createObjectURL(file), wrap = document.createElement('div'),
+                    img = document.createElement('img'), x = document.createElement('button'), nm = document.createElement('small');
+                urls.push(url);
+                wrap.className = 'pv' + (terpilih.length === 1 ? ' single' : '');
+                img.src = url; img.alt = file.name;
+                x.type = 'button'; x.className = 'pv-x'; x.innerHTML = '&times;';
+                x.title = 'Batalkan foto ini'; x.setAttribute('aria-label', 'Batalkan foto ' + file.name);
+                x.addEventListener('click', function () {
+                    terpilih.splice(i, 1);
+                    peringatan.textContent = '';
+                    sinkronkanInput(); render();
+                });
+                nm.textContent = file.name; nm.title = file.name;
+                wrap.append(img, x, nm);
+                previewFoto.appendChild(wrap);
             });
+            namaFoto.textContent = terpilih.length ? terpilih.length + ' foto dipilih' : '';
+            btnSimpan.disabled = !terpilih.length;
+            btnBatalSemua.hidden = !terpilih.length;
+            drop.classList.toggle('has-foto', terpilih.length > 0);
+            document.getElementById('btnTambah').hidden = terpilih.length >= MAKS_FOTO;
         }
-        function perbaruiTombol() {
-            btnSimpan.disabled = !input.files.length;
+
+        function tambahFile(daftar) {
+            var pesan = [];
+            Array.from(daftar).forEach(function (f) {
+                if (!f.type.startsWith('image/')) { pesan.push(f.name + ' bukan gambar.'); return; }
+                if (f.size > MAKS_MB * 1024 * 1024) { pesan.push(f.name + ' lebih dari ' + MAKS_MB + ' MB.'); return; }
+                if (terpilih.some(function (t) { return kunci(t) === kunci(f); })) return;
+                if (terpilih.length >= MAKS_FOTO) { pesan.length || pesan.push('Maksimal ' + MAKS_FOTO + ' foto sekali unggah.'); return; }
+                terpilih.push(f);
+            });
+            peringatan.textContent = pesan.join(' ');
+            sinkronkanInput(); render();
         }
-        input.addEventListener('change', function () {
-            namaFoto.textContent = input.files.length ? input.files.length + ' foto dipilih' : '';
-            tampilkanPreview();
-            perbaruiTombol();
+
+        input.addEventListener('change', function () { tambahFile(input.files); });
+        btnBatalSemua.addEventListener('click', function () {
+            terpilih = []; peringatan.textContent = '';
+            sinkronkanInput(); render();
         });
-        document.getElementById('keterangan').addEventListener('input', perbaruiTombol);
         form.addEventListener('submit', function (e) {
-            if (!input.files.length) {
-                e.preventDefault();
-                perbaruiTombol();
-                return;
-            }
+            if (!terpilih.length) { e.preventDefault(); render(); return; }
             btnSimpan.disabled = true;
             btnSimpan.textContent = 'Mengunggah...';
         });
@@ -199,12 +272,9 @@
             drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('over'); });
         });
         drop.addEventListener('drop', function (e) {
-            if (!e.dataTransfer.files.length) return;
-            input.files = e.dataTransfer.files;
-            namaFoto.textContent = input.files.length + ' foto dipilih';
-            tampilkanPreview();
-            perbaruiTombol();
+            if (e.dataTransfer.files.length) tambahFile(e.dataTransfer.files);
         });
+        render();
 
         var dlgFoto = document.getElementById('dlgFoto'), imgFotoBesar = document.getElementById('imgFotoBesar');
         document.querySelectorAll('.photo-preview').forEach(function (b) {
@@ -245,13 +315,22 @@
         dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
         dlg.addEventListener('close', function () { if (previewEditUrl) URL.revokeObjectURL(previewEditUrl); previewEditUrl = null; });
 
-        var dlgHapus = document.getElementById('dlgHapus'), formHapus = document.getElementById('formHapus');
-        document.querySelectorAll('.form-hapus').forEach(function (f) {
-            f.addEventListener('submit', function (e) {
-                e.preventDefault();
-                formHapus.action = f.action;
+        var dlgHapus = document.getElementById('dlgHapus'), formHapus = document.getElementById('formHapus'),
+            hapusImg = document.getElementById('hapusImg'), hapusKet = document.getElementById('hapusKet'),
+            btnYaHapus = document.getElementById('btnYaHapus');
+        document.querySelectorAll('.btn-hapus-foto').forEach(function (b) {
+            b.addEventListener('click', function () {
+                formHapus.setAttribute('action', b.dataset.url);
+                hapusImg.src = b.dataset.foto;
+                hapusKet.textContent = b.dataset.ket;
+                btnYaHapus.disabled = false;
+                btnYaHapus.textContent = 'Ya, Hapus';
                 dlgHapus.showModal();
             });
+        });
+        formHapus.addEventListener('submit', function () {
+            btnYaHapus.disabled = true;      // cegah klik ganda (klik kedua = foto sudah hilang)
+            btnYaHapus.textContent = 'Menghapus...';
         });
         document.getElementById('btnBatalHapus').addEventListener('click', function () { dlgHapus.close(); });
         dlgHapus.addEventListener('click', function (e) { if (e.target === dlgHapus) dlgHapus.close(); });

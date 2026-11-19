@@ -53,6 +53,10 @@ Route::middleware(['cek.siswa', NoCache::class])->group(function () {
 
 // Route Autentikasi (Guest) - Admin
 Route::prefix('admin')->group(function () {
+    // Pintu masuk admin: cukup ketik /admin di alamat browser (tidak ada link ke sini di website publik)
+    Route::get('/', fn () => session()->has('admin_id')
+        ? redirect()->route('admin.dashboard')
+        : redirect()->route('admin.login'));
     Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('admin.login');
     Route::post('/login', [AdminAuthController::class, 'login']);
     Route::get('/logout', [AdminAuthController::class, 'logout'])->name('admin.logout');

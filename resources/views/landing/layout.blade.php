@@ -222,7 +222,7 @@
                         <li><a href="{{ route($rt) }}" class="{{ request()->routeIs($pola) ? 'active' : '' }}">{{ $label }}</a></li>
                     @endforeach
                 </ul>
-                <button class="cta" onclick="toggleModal(true)">Pemilihan ▾</button>
+                <a class="cta" href="{{ route('login') }}" style="text-decoration:none">Pemilihan</a>
             </div>
 
             <button class="burger" id="burger" aria-label="Buka menu" aria-expanded="false" onclick="openDrawer()">
@@ -258,7 +258,7 @@
         </ul>
 
         <div class="drawer-foot">
-            <button class="cta" onclick="closeDrawer(); toggleModal(true)">Pemilihan ▾</button>
+            <a class="cta" href="{{ route('login') }}" style="text-decoration:none;text-align:center">Pemilihan</a>
         </div>
     </aside>
 
@@ -290,28 +290,7 @@
         </div>
     </footer>
 
-    {{-- ===== MODAL PILIHAN LOGIN ===== --}}
-    <div class="modal" id="modalPemilihan" onclick="if(event.target===this)toggleModal(false)">
-        <div class="modal-box">
-            <button class="close" onclick="toggleModal(false)">&times;</button>
-            <h3>E-Voting Pemilihan Ketua OSIS</h3>
-            <p>Pilih jenis akun untuk masuk</p>
-
-            <a href="{{ route('login') }}" class="login-opt">
-                <div class="ic">🎓</div>
-                <div><b>Login sebagai Siswa</b><small>Berikan suaramu untuk Ketua OSIS</small></div>
-            </a>
-            <a href="{{ route('admin.login') }}" class="login-opt">
-                <div class="ic">🛡️</div>
-                <div><b>Login sebagai Admin</b><small>Khusus panitia OSIS</small></div>
-            </a>
-        </div>
-    </div>
-
     <script>
-        function toggleModal(show){
-            document.getElementById('modalPemilihan').classList.toggle('open', show);
-        }
         function openDrawer(){
             document.getElementById('drawer').classList.add('open');
             document.getElementById('drawerOverlay').classList.add('open');
@@ -325,7 +304,7 @@
             document.body.classList.remove('no-scroll');
         }
         document.addEventListener('keydown', function(e){
-            if(e.key==='Escape'){ toggleModal(false); closeDrawer(); }
+            if(e.key==='Escape'){ closeDrawer(); }
         });
         // kalau layar dilebarkan (misal HP diputar), tutup drawer otomatis
         window.addEventListener('resize', function(){ if(window.innerWidth > 900) closeDrawer(); });

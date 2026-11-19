@@ -238,7 +238,7 @@
                     <h2>Pemilihan Ketua OSIS</h2>
                     <p>Suaramu menentukan siapa yang memimpin OSIS berikutnya. Masuk dengan akun siswa untuk memilih.</p>
                 </div>
-                <button class="btn btn-light" onclick="toggleModal(true)">Masuk untuk memilih</button>
+                <a class="btn btn-light" href="{{ route('login') }}">Masuk untuk memilih</a>
             </div>
         </section>
     </div>

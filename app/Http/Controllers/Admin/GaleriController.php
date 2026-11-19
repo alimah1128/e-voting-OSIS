@@ -64,7 +64,13 @@ class GaleriController extends Controller
 
     public function destroy($id)
     {
-        $item = Galeri::findOrFail($id);
+        $item = Galeri::find($id);
+
+        // Foto sudah tidak ada (mis. terhapus di tab lain / klik dua kali): jangan 404, balik saja ke galeri
+        if (!$item) {
+            return redirect()->route('admin.galeri.index')->with('success', 'Foto sudah tidak ada di galeri.');
+        }
+
         if ($item->foto) Storage::disk('public')->delete($item->foto);
         $item->delete();
 
