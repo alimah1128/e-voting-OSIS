@@ -1,0 +1,16 @@
+.git
+.vercel
+.DS_Store
+.env
+.env.*
+!.env.example
+node_modules
+vendor
+tests
+public/build
+public/hot
+storage/logs/*
+storage/app/public/*
+storage/framework/views/*
+bootstrap/cache/*
+database/database.sqlite
