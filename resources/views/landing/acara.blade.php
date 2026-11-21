@@ -30,7 +30,7 @@
         <section>
             <article class="detail">
                 @if($acara->foto)
-                    <img class="detail-img" src="{{ asset('storage/'.$acara->foto) }}" alt="{{ $acara->judul }}">
+                    <img class="detail-img" src="{{ app(\App\Services\BlobStorage::class)->url($acara->foto) }}" alt="{{ $acara->judul }}">
                 @endif
 
                 <div class="meta">

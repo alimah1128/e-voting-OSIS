@@ -219,7 +219,7 @@
                 </div>
                 <div class="avatar">
                     @if ($siswaAktif->foto)
-                        <img src="{{ asset('image/' . $siswaAktif->foto) }}" alt="Foto">
+                        <img src="{{ app(\App\Services\BlobStorage::class)->url($siswaAktif->foto) }}" alt="Foto">
                     @else
                         {{ strtoupper(substr($siswaAktif->nama, 0, 1)) }}
                     @endif
@@ -279,7 +279,7 @@
                 <div class="foto-preview-wrapper">
                     <div class="foto-preview" id="fotoPreview">
                         @if ($siswa->foto)
-                            <img src="{{ asset('image/' . $siswa->foto) }}" alt="Foto Profil" id="previewImg">
+                            <img src="{{ app(\App\Services\BlobStorage::class)->url($siswa->foto) }}" alt="Foto Profil" id="previewImg">
                         @else
                             <span id="previewInitial">{{ strtoupper(substr($siswa->nama, 0, 1)) }}</span>
                             <img src="" alt="" id="previewImg" style="display:none;">

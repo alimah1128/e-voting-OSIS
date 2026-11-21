@@ -125,18 +125,18 @@
         <div class="gal">
             @foreach($items as $g)
                 <div class="gcard">
-                    <button type="button" class="photo-preview" aria-label="Perbesar {{ $g->keterangan ?: 'foto galeri' }}" data-src="{{ asset('storage/'.$g->foto) }}" data-alt="{{ $g->keterangan ?: 'Foto galeri' }}">
-                        <img src="{{ asset('storage/'.$g->foto) }}" alt="{{ $g->keterangan ?: 'Foto galeri' }}" loading="lazy">
+                    <button type="button" class="photo-preview" aria-label="Perbesar {{ $g->keterangan ?: 'foto galeri' }}" data-src="{{ app(\App\Services\BlobStorage::class)->url($g->foto) }}" data-alt="{{ $g->keterangan ?: 'Foto galeri' }}">
+                        <img src="{{ app(\App\Services\BlobStorage::class)->url($g->foto) }}" alt="{{ $g->keterangan ?: 'Foto galeri' }}" loading="lazy">
                     </button>
                     <div class="cap {{ $g->keterangan ? '' : 'none' }}">{{ $g->keterangan ?: 'Tanpa keterangan' }}</div>
                     <div class="actions">
                         <button type="button" class="btn btn-soft btn-sm btn-edit"
                                 data-url="{{ route('admin.galeri.update', $g->id) }}"
                                 data-ket="{{ $g->keterangan }}"
-                                data-foto="{{ asset('storage/'.$g->foto) }}">Edit</button>
+                                data-foto="{{ app(\App\Services\BlobStorage::class)->url($g->foto) }}">Edit</button>
                         <button type="button" class="btn btn-danger btn-sm btn-hapus-foto"
                                 data-url="{{ route('admin.galeri.destroy', $g->id) }}"
-                                data-foto="{{ asset('storage/'.$g->foto) }}"
+                                data-foto="{{ app(\App\Services\BlobStorage::class)->url($g->foto) }}"
                                 data-ket="{{ $g->keterangan ?: 'Tanpa keterangan' }}">Hapus</button>
                     </div>
                 </div>

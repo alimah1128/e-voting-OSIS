@@ -30,7 +30,7 @@
                 <div class="kandidat-photo-wrap">
                     <span class="kandidat-badge">No. {{ $kandidat->no_urut }}</span>
                     @if ($kandidat->foto)
-                        <img src="{{ asset('image/' . $kandidat->foto) }}" alt="{{ $kandidat->nama_ketua }}">
+                        <img src="{{ app(\App\Services\BlobStorage::class)->url($kandidat->foto) }}" alt="{{ $kandidat->nama_ketua }}">
                     @else
                         <div class="kandidat-photo-placeholder"><i class="fa-regular fa-image"></i></div>
                     @endif
@@ -40,11 +40,11 @@
                     <p class="kandidat-wakil">& {{ $kandidat->nama_wakil }} · {{ $kandidat->kelas_ketua }}</p>
                     <p class="kandidat-visi">{{ \Illuminate\Support\Str::limit($kandidat->visi, 90) }}</p>
                     <div class="kandidat-actions">
-                        <button type="button" class="btn-edit" onclick='bukaModalEdit(@json($kandidat))'>
+                        <button type="button" class="btn-edit" onclick='bukaModalEdit(@json($kandidat->toArray() + ['foto_url' => app(\App\Services\BlobStorage::class)->url($kandidat->foto)]))'>
                             <i class="fa-solid fa-pen"></i> Edit
                         </button>
                         <button type="button" class="btn-delete"
-                            onclick="bukaModalHapusKandidat({{ $kandidat->id }}, '{{ addslashes($kandidat->nama_ketua) }} & {{ addslashes($kandidat->nama_wakil) }}', {{ $kandidat->foto ? "'" . asset('image/' . $kandidat->foto) . "'" : 'null' }})">
+                            onclick="bukaModalHapusKandidat({{ $kandidat->id }}, '{{ addslashes($kandidat->nama_ketua) }} & {{ addslashes($kandidat->nama_wakil) }}', {{ $kandidat->foto ? "'" . app(\App\Services\BlobStorage::class)->url($kandidat->foto) . "'" : 'null' }})">
                             <i class="fa-solid fa-trash"></i> Hapus
                         </button>
                     </div>
@@ -222,7 +222,7 @@
 
         if (kandidat.foto) {
             document.getElementById('previewFotoWrapper').innerHTML =
-                '<img src="/image/' + kandidat.foto + '" class="foto-preview-img">';
+                '<img src="' + kandidat.foto_url + '" class="foto-preview-img">';
         }
 
         document.getElementById('modalKandidat').style.display = 'flex';

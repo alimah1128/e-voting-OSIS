@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\BlobStorage;
 use App\Models\Kandidat;
 use App\Models\PeriodePemilihan;
 use Illuminate\Http\Request;
@@ -43,15 +44,15 @@ class KandidatController extends Controller
         $kandidat = Kandidat::findOrFail($id);
         $data = $this->validasi($request);
 
+        $lama = null;
         if ($request->hasFile('foto')) {
-            // Hapus foto lama kalau ada, lalu simpan yang baru
-            if ($kandidat->foto && file_exists(public_path('image/' . $kandidat->foto))) {
-                unlink(public_path('image/' . $kandidat->foto));
-            }
+            // Simpan foto baru dulu; foto lama dihapus setelah DB diperbarui
+            $lama = $kandidat->foto;
             $data['foto'] = $this->simpanFoto($request);
         }
 
         $kandidat->update($data);
+        app(BlobStorage::class)->hapus($lama);
 
         return redirect()->route('admin.kandidat.index')->with('success', 'Kandidat berhasil diperbarui.');
     }
@@ -60,9 +61,7 @@ class KandidatController extends Controller
     {
         $kandidat = Kandidat::findOrFail($id);
 
-        if ($kandidat->foto && file_exists(public_path('image/' . $kandidat->foto))) {
-            unlink(public_path('image/' . $kandidat->foto));
-        }
+        app(BlobStorage::class)->hapus($kandidat->foto);
 
         $kandidat->delete();
 
@@ -82,7 +81,7 @@ class KandidatController extends Controller
             'misi.*' => 'nullable|string',
             'program_kerja' => 'nullable|array',
             'program_kerja.*' => 'nullable|string',
-            'foto' => 'nullable|image|max:2048',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:4096',
         ]);
 
         // Buang poin misi/program kerja yang kosong
@@ -100,10 +99,6 @@ class KandidatController extends Controller
             return null;
         }
 
-        $file = $request->file('foto');
-        $filename = 'kandidat_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        $file->move(public_path('image'), $filename);
-
-        return $filename;
+        return app(BlobStorage::class)->upload($request->file('foto'), 'kandidat');
     }
 }

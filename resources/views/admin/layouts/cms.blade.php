@@ -209,7 +209,7 @@
                 </div>
                 <button type="button" class="avatar" onclick="bukaModalProfil()" title="Profil Admin" aria-label="Buka profil admin">
                     @if (session('admin_foto'))
-                        <img src="{{ asset('image/' . session('admin_foto')) }}" alt="Foto Admin">
+                        <img src="{{ app(\App\Services\BlobStorage::class)->url(session('admin_foto')) }}" alt="Foto Admin">
                     @else
                         {{ strtoupper(substr($namaAdmin, 0, 1)) }}
                     @endif
@@ -257,7 +257,7 @@
                     <div class="mp-fotoarea">
                         <label for="inputFotoProfil" class="mp-foto" id="previewFotoProfilWrapper">
                             @if ($adminProfil && $adminProfil->foto)
-                                <img src="{{ asset('image/' . $adminProfil->foto) }}" alt="Foto profil">
+                                <img src="{{ app(\App\Services\BlobStorage::class)->url($adminProfil->foto) }}" alt="Foto profil">
                             @else
                                 Klik untuk upload foto
                             @endif

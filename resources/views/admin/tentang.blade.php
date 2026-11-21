@@ -19,7 +19,7 @@
             <div>
                 <label class="lb" style="display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Foto Tentang OSIS</label>
                 <label for="fotoTentang" id="pbox" class="photo-box big {{ $foto ? 'has-img' : 'ph' }}"
-                       @if($foto) style="background-image:url('{{ asset('storage/'.$foto) }}')" @endif>[ foto Tentang OSIS ]</label>
+                       @if($foto) style="background-image:url('{{ app(\App\Services\BlobStorage::class)->url($foto) }}')" @endif>[ foto Tentang OSIS ]</label>
                 <input type="file" id="fotoTentang" name="tentang_foto" accept="image/*" hidden onchange="previewFoto(this,'pbox'); document.getElementById('hapusFoto').value='0'">
 
                 <div class="actions">

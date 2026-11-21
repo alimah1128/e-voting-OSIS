@@ -278,7 +278,7 @@
                 </div>
                 <div class="avatar">
                     @if ($siswaAktif->foto)
-                        <img src="{{ asset('image/' . $siswaAktif->foto) }}" alt="Foto">
+                        <img src="{{ app(\App\Services\BlobStorage::class)->url($siswaAktif->foto) }}" alt="Foto">
                     @else
                         {{ strtoupper(substr($siswaAktif->nama, 0, 1)) }}
                     @endif
@@ -362,7 +362,7 @@
                         <div class="card-body">
                             <div class="photo-box">
                                 @if ($kandidat->foto)
-                                    <img src="{{ asset('image/' . $kandidat->foto) }}" alt="Kandidat {{ $kandidat->no_urut }}">
+                                    <img src="{{ app(\App\Services\BlobStorage::class)->url($kandidat->foto) }}" alt="Kandidat {{ $kandidat->no_urut }}">
                                 @endif
                             </div>
                             <div class="pasangan-names">

@@ -30,8 +30,8 @@
                     <tr class="{{ $item && $item->id === $i->id ? 'row-on' : '' }}">
                         <td>
                             @if($i->foto)
-                                <button type="button" class="thumb-preview" data-src="{{ asset('storage/'.$i->foto) }}" aria-label="Preview foto {{ $i->judul }}">
-                                    <img class="thumb" src="{{ asset('storage/'.$i->foto) }}" alt="Foto {{ $i->judul }}" loading="lazy">
+                                <button type="button" class="thumb-preview" data-src="{{ app(\App\Services\BlobStorage::class)->url($i->foto) }}" aria-label="Preview foto {{ $i->judul }}">
+                                    <img class="thumb" src="{{ app(\App\Services\BlobStorage::class)->url($i->foto) }}" alt="Foto {{ $i->judul }}" loading="lazy">
                                 </button>
                             @else <div class="thumb ph">📅</div> @endif
                         </td>
@@ -49,7 +49,7 @@
                                 <button type="button" class="btn btn-danger btn-sm"
                                         data-action="{{ route('admin.acara.destroy', $i->id) }}"
                                         data-judul="{{ $i->judul }}"
-                                        data-foto="{{ $i->foto ? asset('storage/'.$i->foto) : '' }}"
+                                        data-foto="{{ $i->foto ? app(\App\Services\BlobStorage::class)->url($i->foto) : '' }}"
                                         data-ikon="📅"
                                         onclick="bukaHapusModal(this)">Hapus</button>
                             </div>
@@ -89,7 +89,7 @@
             <div class="fg">
                 <label class="lb">Foto acara</label>
                 <label for="fotoAcara" id="pbox" class="photo-box {{ $item && $item->foto ? 'has-img' : 'ph' }}"
-                       @if($item && $item->foto) style="background-image:url('{{ asset('storage/'.$item->foto) }}')" @endif>[ unggah foto ]</label>
+                       @if($item && $item->foto) style="background-image:url('{{ app(\App\Services\BlobStorage::class)->url($item->foto) }}')" @endif>[ unggah foto ]</label>
                 <input type="file" id="fotoAcara" name="foto" accept="image/*" hidden onchange="previewFoto(this,'pbox')">
                 <small>Maks 2 MB.</small>
             </div>

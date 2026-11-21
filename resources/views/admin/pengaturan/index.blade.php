@@ -16,7 +16,7 @@
                 <input type="text" name="hero_tagline" value="{{ old('hero_tagline', $data['hero_tagline'] ?? '') }}" placeholder="Suaramu. Masa depan sekolah kita."></div>
             <div class="fg"><label>Foto Utama (foto OSIS bersama)</label>
                 @if(!empty($data['hero_foto']))
-                    <img src="{{ asset('storage/'.$data['hero_foto']) }}" alt="" style="width:100%;max-width:360px;border-radius:12px;margin-bottom:8px;display:block">
+                    <img src="{{ app(\App\Services\BlobStorage::class)->url($data['hero_foto']) }}" alt="" style="width:100%;max-width:360px;border-radius:12px;margin-bottom:8px;display:block">
                 @endif
                 <input type="file" name="hero_foto" accept="image/*">
                 <br><small>Disarankan foto landscape, lebar minimal 1600 px, maks 4 MB. Kosongkan jika tidak ingin mengganti.</small></div>
@@ -26,7 +26,7 @@
             <h3 style="margin-bottom:14px;color:var(--navy)">Tentang OSIS</h3>
             <div class="fg"><label>Foto Tentang OSIS</label>
                 @if(!empty($data['tentang_foto']))
-                    <img src="{{ asset('storage/'.$data['tentang_foto']) }}" alt="" style="width:100%;max-width:280px;border-radius:12px;margin-bottom:8px;display:block">
+                    <img src="{{ app(\App\Services\BlobStorage::class)->url($data['tentang_foto']) }}" alt="" style="width:100%;max-width:280px;border-radius:12px;margin-bottom:8px;display:block">
                 @endif
                 <input type="file" name="tentang_foto" accept="image/*">
                 <br><small>Maks 4 MB. Kalau kosong, yang tampil adalah logo OSIS.</small></div>

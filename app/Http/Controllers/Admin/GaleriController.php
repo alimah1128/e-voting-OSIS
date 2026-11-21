@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\BlobStorage;
 use App\Models\Galeri;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class GaleriController extends Controller
 {
@@ -20,7 +20,7 @@ class GaleriController extends Controller
     {
         $request->validate([
             'foto'       => 'required|array|max:20',
-            'foto.*'     => 'image|max:4096',
+            'foto.*'     => 'image|mimes:jpg,jpeg,png,gif,webp|max:4096',
             'keterangan' => 'nullable|string|max:150',
         ], [
             'foto.required' => 'Pilih minimal satu foto.',
@@ -30,7 +30,7 @@ class GaleriController extends Controller
 
         foreach ($request->file('foto') as $file) {
             Galeri::create([
-                'foto'       => $file->store('galeri', 'public'),
+                'foto'       => app(BlobStorage::class)->upload($file, 'galeri'),
                 'keterangan' => $request->input('keterangan'),
             ]);
         }
@@ -43,7 +43,7 @@ class GaleriController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'foto' => 'nullable|image|max:4096',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:4096',
             'keterangan' => 'nullable|string|max:150',
         ], [
             'foto.image' => 'Berkas harus berupa gambar.',
@@ -51,13 +51,14 @@ class GaleriController extends Controller
         ]);
 
         $item = Galeri::findOrFail($id);
+        $fotoLama = null;
         if ($request->hasFile('foto')) {
             $fotoLama = $item->foto;
-            $item->foto = $request->file('foto')->store('galeri', 'public');
-            if ($fotoLama) Storage::disk('public')->delete($fotoLama);
+            $item->foto = app(BlobStorage::class)->upload($request->file('foto'), 'galeri');
         }
         $item->keterangan = $request->input('keterangan');
         $item->save();
+        app(BlobStorage::class)->hapus($fotoLama);
 
         return redirect()->route('admin.galeri.index')->with('success', 'Foto dan keterangan diperbarui.');
     }
@@ -71,7 +72,7 @@ class GaleriController extends Controller
             return redirect()->route('admin.galeri.index')->with('success', 'Foto sudah tidak ada di galeri.');
         }
 
-        if ($item->foto) Storage::disk('public')->delete($item->foto);
+        if ($item->foto) app(BlobStorage::class)->hapus($item->foto);
         $item->delete();
 
         return redirect()->route('admin.galeri.index')->with('success', 'Foto dihapus.');

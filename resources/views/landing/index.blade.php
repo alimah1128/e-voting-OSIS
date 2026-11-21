@@ -100,7 +100,7 @@
 
     {{-- ===== HERO ===== --}}
     <header class="hero"
-        @if(!empty($p['hero_foto'])) style="background-image:url('{{ asset('storage/'.$p['hero_foto']) }}'){{ $pos ? ';--hero-pos:'.$pos : '' }}" @endif>
+        @if(!empty($p['hero_foto'])) style="background-image:url('{{ app(\App\Services\BlobStorage::class)->url($p['hero_foto']) }}'){{ $pos ? ';--hero-pos:'.$pos : '' }}" @endif>
         <div class="hero-in">
             @if(!empty($p['hero_badge']))
                 <div class="hero-badge"><i></i>{{ $p['hero_badge'] }}</div>
@@ -148,7 +148,7 @@
                                 <a href="{{ route('program') }}" class="art">
                                     <div class="art-img">
                                         @if($pr->foto)
-                                            <img src="{{ asset('storage/'.$pr->foto) }}" alt="{{ $pr->judul }}" loading="lazy">
+                                            <img src="{{ app(\App\Services\BlobStorage::class)->url($pr->foto) }}" alt="{{ $pr->judul }}" loading="lazy">
                                         @else
                                             {{ $pr->ikon ?: '📌' }}
                                         @endif
@@ -221,7 +221,7 @@
             <div class="galeri">
                 @foreach($galeri as $g)
                     <figure>
-                        <img src="{{ asset('storage/'.$g->foto) }}" alt="{{ $g->keterangan ?: 'Foto kegiatan OSIS' }}" loading="lazy">
+                        <img src="{{ app(\App\Services\BlobStorage::class)->url($g->foto) }}" alt="{{ $g->keterangan ?: 'Foto kegiatan OSIS' }}" loading="lazy">
                         @if($g->keterangan)<figcaption>{{ $g->keterangan }}</figcaption>@endif
                     </figure>
                 @endforeach

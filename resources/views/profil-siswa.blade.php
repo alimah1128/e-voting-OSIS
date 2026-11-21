@@ -270,7 +270,7 @@
                 </div>
                 <div class="avatar">
                     @if ($siswaAktif->foto)
-                        <img src="{{ asset('image/' . $siswaAktif->foto) }}" alt="Foto">
+                        <img src="{{ app(\App\Services\BlobStorage::class)->url($siswaAktif->foto) }}" alt="Foto">
                     @else
                         {{ strtoupper(substr($siswaAktif->nama, 0, 1)) }}
                     @endif
@@ -318,7 +318,7 @@
         <div class="profile-card">
             <div class="avatar-lg">
                 @if ($siswa->foto)
-                    <img src="{{ asset('image/' . $siswa->foto) }}" alt="Foto Profil">
+                    <img src="{{ app(\App\Services\BlobStorage::class)->url($siswa->foto) }}" alt="Foto Profil">
                 @else
                     {{ strtoupper(substr($siswa->nama, 0, 1)) }}
                 @endif
@@ -380,7 +380,7 @@
 
                 <div class="foto-upload-box">
                     @if ($siswa->foto)
-                        <img id="previewFoto" src="{{ asset('image/' . $siswa->foto) }}" class="foto-preview">
+                        <img id="previewFoto" src="{{ app(\App\Services\BlobStorage::class)->url($siswa->foto) }}" class="foto-preview">
                     @else
                         <div id="previewFoto" class="foto-preview">{{ strtoupper(substr($siswa->nama, 0, 1)) }}</div>
                     @endif

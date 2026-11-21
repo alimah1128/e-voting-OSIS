@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\BlobStorage;
 use App\Models\Admin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -22,7 +23,7 @@ class ProfilController extends Controller
             'nama_lengkap' => 'nullable|string|max:255',
             'username' => 'required|string|unique:admins,username,' . $admin->id,
             'password' => 'nullable|string|min:6',
-            'foto' => 'nullable|image|max:2048',
+            'foto' => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:4096',
         ]);
 
         $data = [
@@ -34,26 +35,20 @@ class ProfilController extends Controller
             $data['password'] = Hash::make($request->password);
         }
 
-        if ($request->hasFile('foto')) {
-            // Ganti foto: hapus foto lama, pasang foto baru
-            if ($admin->foto && file_exists(public_path('image/' . $admin->foto))) {
-                unlink(public_path('image/' . $admin->foto));
-            }
+        $lama = $admin->foto;
 
-            $file = $request->file('foto');
-            $filename = 'admin_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('image'), $filename);
-            $data['foto'] = $filename;
+        if ($request->hasFile('foto')) {
+            // Ganti foto: unggah dulu, foto lama dihapus setelah DB diperbarui
+            $data['foto'] = app(BlobStorage::class)->upload($request->file('foto'), 'admin');
 
         } elseif ($request->boolean('hapus_foto') && $admin->foto) {
             // Ditandai "hapus foto" (tanpa pilih foto baru): hapus file lama, kosongkan kolomnya
-            if (file_exists(public_path('image/' . $admin->foto))) {
-                unlink(public_path('image/' . $admin->foto));
-            }
             $data['foto'] = null;
         }
 
         $admin->update($data);
+
+        if (array_key_exists('foto', $data)) app(BlobStorage::class)->hapus($lama);
 
         session([
             'admin_username' => $admin->username,

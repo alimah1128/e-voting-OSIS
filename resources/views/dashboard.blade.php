@@ -474,7 +474,7 @@
                 </div>
                 <div class="avatar">
                     @if ($siswaAktif->foto)
-                        <img src="{{ asset('image/' . $siswaAktif->foto) }}" alt="Foto">
+                        <img src="{{ app(\App\Services\BlobStorage::class)->url($siswaAktif->foto) }}" alt="Foto">
                     @else
                         {{ strtoupper(substr($siswaAktif->nama, 0, 1)) }}
                     @endif
