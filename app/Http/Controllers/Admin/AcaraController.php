@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\BlobStorage;
 use App\Models\Acara;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class AcaraController extends Controller
 {
@@ -26,7 +26,7 @@ class AcaraController extends Controller
     {
         $data = $this->validasi($request);
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('acara', 'public');
+            $data['foto'] = app(BlobStorage::class)->upload($request->file('foto'), 'acara');
         }
         Acara::create($data);
 
@@ -46,11 +46,12 @@ class AcaraController extends Controller
         $item = Acara::findOrFail($id);
         $data = $this->validasi($request);
 
+        $lama = $item->foto;
         if ($request->hasFile('foto')) {
-            if ($item->foto) Storage::disk('public')->delete($item->foto);
-            $data['foto'] = $request->file('foto')->store('acara', 'public');
+            $data['foto'] = app(BlobStorage::class)->upload($request->file('foto'), 'acara');
         }
         $item->update($data);
+        if (isset($data['foto'])) app(BlobStorage::class)->hapus($lama);
 
         return redirect()->route('admin.acara.index')->with('success', 'Acara diperbarui.');
     }
@@ -58,7 +59,7 @@ class AcaraController extends Controller
     public function destroy($id)
     {
         $item = Acara::findOrFail($id);
-        if ($item->foto) Storage::disk('public')->delete($item->foto);
+        if ($item->foto) app(BlobStorage::class)->hapus($item->foto);
         $item->delete();
 
         return redirect()->route('admin.acara.index')->with('success', 'Acara dihapus.');
@@ -71,7 +72,7 @@ class AcaraController extends Controller
             'deskripsi' => 'nullable|string',
             'tanggal'   => 'required|date',
             'lokasi'    => 'nullable|string|max:150',
-            'foto'      => 'nullable|image|max:2048',
+            'foto'      => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
         ]);
         $data['aktif'] = $request->boolean('aktif');
         unset($data['foto']);

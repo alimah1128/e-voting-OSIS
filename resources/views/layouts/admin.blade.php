@@ -1216,7 +1216,7 @@
                 </div>
                 <button type="button" class="avatar" onclick="bukaModalProfil()" title="Profil Admin" aria-label="Buka profil admin">
                     @if (session('admin_foto'))
-                        <img src="{{ asset('image/' . session('admin_foto')) }}" alt="Foto Admin">
+                        <img src="{{ app(\App\Services\BlobStorage::class)->url(session('admin_foto')) }}" alt="Foto Admin">
                     @else
                         {{ strtoupper(substr($namaAdmin, 0, 1)) }}
                     @endif
@@ -1263,7 +1263,7 @@
                         <label for="inputFotoProfil" class="dropzone" id="dropzoneFotoProfil" style="cursor:pointer;">
                             <div id="previewFotoProfilWrapper">
                                 @if ($adminProfil && $adminProfil->foto)
-                                    <img src="{{ asset('image/' . $adminProfil->foto) }}" class="foto-preview-img" style="border-radius:50%; width:90px; height:90px; object-fit:cover;">
+                                    <img src="{{ app(\App\Services\BlobStorage::class)->url($adminProfil->foto) }}" class="foto-preview-img" style="border-radius:50%; width:90px; height:90px; object-fit:cover;">
                                 @else
                                     <i class="fa-regular fa-user" style="font-size:36px;"></i>
                                     <div class="dz-sub">Klik untuk upload foto profil</div>

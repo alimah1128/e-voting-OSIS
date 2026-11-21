@@ -52,7 +52,7 @@
         <div class="badge"><img src="{{ asset('image/logo-osis.png') }}" alt="Logo OSIS"></div>
         <div class="frame">
             @if(!empty($p['tentang_foto']))
-                <img src="{{ asset('storage/'.$p['tentang_foto']) }}" alt="Tentang OSIS">
+                <img src="{{ app(\App\Services\BlobStorage::class)->url($p['tentang_foto']) }}" alt="Tentang OSIS">
             @else
                 <div class="logo-only"><img src="{{ asset('image/logo-osis.png') }}" alt="Logo OSIS"></div>
             @endif

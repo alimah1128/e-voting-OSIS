@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\BlobStorage;
 use App\Models\Pengaturan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Pengaturan konten website, dibagi 3 halaman admin:
@@ -35,7 +35,7 @@ class PengaturanController extends Controller
             'hero_tagline'   => 'nullable|string|max:300',
             'hero_btn1_teks' => 'nullable|string|max:30',
             'hero_btn2_teks' => 'nullable|string|max:30',
-            'hero_foto'      => 'nullable|image|max:4096',
+            'hero_foto'      => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:4096',
         ]);
 
         foreach (['hero_badge', 'hero_judul', 'hero_judul2', 'hero_tagline', 'hero_btn1_teks', 'hero_btn2_teks'] as $kunci) {
@@ -60,7 +60,7 @@ class PengaturanController extends Controller
             'tentang_profil' => 'nullable|string',
             'visi'           => 'nullable|string',
             'misi'           => 'nullable|string',
-            'tentang_foto'   => 'nullable|image|max:4096',
+            'tentang_foto'   => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:4096',
         ]);
 
         foreach (['tentang_profil', 'visi', 'misi'] as $kunci) {
@@ -108,11 +108,11 @@ class PengaturanController extends Controller
         $lama = Pengaturan::where('kunci', $kunci)->value('nilai');
 
         if ($request->hasFile($kunci)) {
-            if ($lama) Storage::disk('public')->delete($lama);
-            $this->simpan($kunci, $request->file($kunci)->store('pengaturan', 'public'));
+            $this->simpan($kunci, app(BlobStorage::class)->upload($request->file($kunci), 'pengaturan'));
+            app(BlobStorage::class)->hapus($lama);
         } elseif ($request->boolean($namaHapus)) {
-            if ($lama) Storage::disk('public')->delete($lama);
             $this->simpan($kunci, '');
+            app(BlobStorage::class)->hapus($lama);
         }
     }
 }

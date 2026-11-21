@@ -23,7 +23,7 @@
         </div>
 
         <div class="fg"><label>Foto (opsional)</label>
-            @if($item && $item->foto) <img class="thumb" style="width:90px;height:90px;margin-bottom:8px" src="{{ asset('storage/'.$item->foto) }}" alt=""> @endif
+            @if($item && $item->foto) <img class="thumb" style="width:90px;height:90px;margin-bottom:8px" src="{{ app(\App\Services\BlobStorage::class)->url($item->foto) }}" alt=""> @endif
             <input type="file" name="foto" accept="image/*"><br><small>Maks 2 MB.</small></div>
 
         <div class="fg"><label style="text-transform:none;font-size:14px">

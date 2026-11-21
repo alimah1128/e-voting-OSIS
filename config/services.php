@@ -24,6 +24,10 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'vercel_blob' => [
+        'token' => env('BLOB_READ_WRITE_TOKEN'),
+    ],
+
     'resend' => [
         'key' => env('RESEND_KEY'),
     ],

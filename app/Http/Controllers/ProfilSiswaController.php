@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Siswa;
+use App\Services\BlobStorage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -38,31 +39,24 @@ class ProfilSiswaController extends Controller
         $siswa = Siswa::findOrFail(session('siswa_id'));
 
         $request->validate([
-            'foto'       => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'foto'       => 'nullable|image|mimes:jpg,jpeg,png|max:4096',
             'password'   => 'nullable|min:6',
             'hapus_foto' => 'nullable|in:0,1',
         ], [
             'foto.image'   => 'File foto harus berupa gambar.',
             'foto.mimes'   => 'Foto harus berformat JPG, JPEG, atau PNG.',
-            'foto.max'     => 'Ukuran foto maksimal 2 MB.',
+            'foto.max'     => 'Ukuran foto maksimal 4 MB.',
             'password.min' => 'Password baru minimal 6 karakter.',
         ]);
 
         $data = [];
+        $lama = $siswa->foto;
 
         if ($request->hasFile('foto')) {
-            // Ganti dengan foto baru: hapus file lama dulu
-            $this->hapusFileFoto($siswa->foto);
-
-            $file = $request->file('foto');
-            $filename = 'siswa_' . $siswa->id . '_' . time() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('image'), $filename);
-
-            $data['foto'] = $filename;
+            // Ganti dengan foto baru: unggah dulu, file lama dihapus setelah DB diperbarui
+            $data['foto'] = app(BlobStorage::class)->upload($request->file('foto'), 'siswa');
         } elseif ($request->input('hapus_foto') === '1') {
-            // Tombol X ditekan dan tidak ada foto baru: hapus foto, kolom dikosongkan
-            $this->hapusFileFoto($siswa->foto);
-
+            // Tombol X ditekan dan tidak ada foto baru: kolom dikosongkan, file lama dihapus setelahnya
             $data['foto'] = null;
         }
 
@@ -72,18 +66,16 @@ class ProfilSiswaController extends Controller
 
         if (! empty($data)) {
             $siswa->update($data);
+
+            if (array_key_exists('foto', $data)) $this->hapusFileFoto($lama);
         }
 
         return redirect()->route('siswa.profil')->with('success', 'Profil berhasil diperbarui.');
     }
 
-    /**
-     * Hapus file foto dari folder public/image (kalau ada)
-     */
+    /** Hapus file foto lama dari Blob (kalau ada) */
     private function hapusFileFoto(?string $namaFile): void
     {
-        if ($namaFile && file_exists(public_path('image/' . $namaFile))) {
-            unlink(public_path('image/' . $namaFile));
-        }
+        app(BlobStorage::class)->hapus($namaFile);
     }
 }

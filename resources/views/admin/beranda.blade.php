@@ -47,7 +47,7 @@
 
         {{-- Pratinjau hero (sama dengan tampilan website) --}}
         <section class="hero-prev {{ $foto ? 'has-img' : '' }}" id="heroPrev"
-                 @if($foto) style="background-image:url('{{ asset('storage/'.$foto) }}')" @endif>
+                 @if($foto) style="background-image:url('{{ app(\App\Services\BlobStorage::class)->url($foto) }}')" @endif>
             <div class="float-btns">
                 <label class="fbtn" for="heroFile">🖼 Ganti Foto Latar</label>
                 <button type="button" class="fbtn danger" id="btnHapus" {!! $foto ? '' : 'hidden' !!}>Hapus Foto</button>

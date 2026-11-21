@@ -12,6 +12,7 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->trustProxies(at: '*');
         $middleware->alias([
             'cek.siswa' => \App\Http\Middleware\CekSesiSiswa::class,
             'cek.admin' => \App\Http\Middleware\CekSesiAdmin::class,

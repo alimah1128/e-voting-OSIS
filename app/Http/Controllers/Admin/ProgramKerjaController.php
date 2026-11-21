@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Services\BlobStorage;
 use App\Models\ProgramKerja;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 class ProgramKerjaController extends Controller
 {
@@ -26,7 +26,7 @@ class ProgramKerjaController extends Controller
     {
         $data = $this->validasi($request);
         if ($request->hasFile('foto')) {
-            $data['foto'] = $request->file('foto')->store('program-kerja', 'public');
+            $data['foto'] = app(BlobStorage::class)->upload($request->file('foto'), 'program-kerja');
         }
         ProgramKerja::create($data);
 
@@ -46,11 +46,12 @@ class ProgramKerjaController extends Controller
         $item = ProgramKerja::findOrFail($id);
         $data = $this->validasi($request);
 
+        $lama = $item->foto;
         if ($request->hasFile('foto')) {
-            if ($item->foto) Storage::disk('public')->delete($item->foto);
-            $data['foto'] = $request->file('foto')->store('program-kerja', 'public');
+            $data['foto'] = app(BlobStorage::class)->upload($request->file('foto'), 'program-kerja');
         }
         $item->update($data);
+        if (isset($data['foto'])) app(BlobStorage::class)->hapus($lama);
 
         return redirect()->route('admin.program-kerja.index')->with('success', 'Program kerja diperbarui.');
     }
@@ -58,7 +59,7 @@ class ProgramKerjaController extends Controller
     public function destroy($id)
     {
         $item = ProgramKerja::findOrFail($id);
-        if ($item->foto) Storage::disk('public')->delete($item->foto);
+        if ($item->foto) app(BlobStorage::class)->hapus($item->foto);
         $item->delete();
 
         return redirect()->route('admin.program-kerja.index')->with('success', 'Program kerja dihapus.');
@@ -71,7 +72,7 @@ class ProgramKerjaController extends Controller
             'deskripsi' => 'nullable|string',
             'ikon'      => 'nullable|string|max:10',
             'urutan'    => 'nullable|integer|min:0',
-            'foto'      => 'nullable|image|max:2048',
+            'foto'      => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
         ]);
         $data['aktif']  = $request->boolean('aktif');
         $data['urutan'] = $data['urutan'] ?? 0;
