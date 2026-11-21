@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8"><title>Dokumentasi Hosting Vercel</title>
+<style>
+@page { size: A4; margin: 2cm 1.8cm; }
+body { font-family: Arial, sans-serif; color:#202124; line-height:1.5; font-size:10.5pt; }
+h1 { color:#173b67; font-size:24pt; border-bottom:3px solid #2d75b9; padding-bottom:8px; }
+h2 { color:#173b67; font-size:16pt; margin-top:24px; border-bottom:1px solid #b8c7d9; padding-bottom:4px; }
+h3 { color:#245b88; font-size:12.5pt; margin-top:16px; }
+.cover { text-align:center; padding-top:170px; page-break-after:always; }
+.cover h1 { border:0; font-size:28pt; }
+.meta { color:#555; font-size:11pt; }
+.note,.warn,.ok { padding:10px 12px; margin:12px 0; border-left:5px solid; }
+.note { background:#eef6ff; border-color:#2d75b9; } .warn { background:#fff4e5; border-color:#e69500; } .ok { background:#eef8ee; border-color:#3b8c45; }
+code { font-family: Menlo, monospace; background:#f0f2f4; padding:1px 4px; font-size:9pt; }
+pre { background:#f5f6f7; border:1px solid #d7dce1; padding:10px; white-space:pre-wrap; font:8.5pt Menlo,monospace; }
+table { border-collapse:collapse; width:100%; margin:10px 0 16px; } th { background:#173b67; color:#fff; } td,th { border:1px solid #cbd5df; padding:6px 8px; vertical-align:top; }
+ul,ol { padding-left:22px; } li { margin:4px 0; }
+.small { font-size:9pt; color:#555; } .pagebreak { page-break-before:always; }
+</style>
+</head>
+<body>
+<section class="cover">
+<h1>Dokumentasi Hosting ke Vercel</h1>
+<p><strong>Project E-Voting OSIS</strong></p>
+<p class="meta">Panduan lengkap, praktis, dan mudah dipahami</p>
+<p class="meta">Stack: Laravel 12 · PHP 8.4 · FrankenPHP · TiDB Cloud · Vercel Blob</p>
+<br><br><p class="small">Dokumen ini disusun berdasarkan konfigurasi deployment pada branch<br><code>fix/admin-gallery-previews</code>.</p>
+</section>
+
+<h1>Daftar Isi</h1>
+<ol><li>Gambaran umum</li><li>Arsitektur hosting</li><li>Tools dan fungsi masing-masing</li><li>Persiapan sebelum deploy</li><li>Menyiapkan database TiDB Cloud</li><li>Menyiapkan Vercel Blob</li><li>Menyiapkan repository dan project Vercel</li><li>Environment Variables</li><li>Deploy langkah demi langkah</li><li>Migrasi dan data awal</li><li>Pengujian setelah deploy</li><li>Keamanan, batasan, dan operasional</li><li>Troubleshooting</li><li>Checklist akhir</li></ol>
+
+<h2>1. Gambaran Umum</h2>
+<p>Project ini adalah aplikasi website OSIS sekaligus sistem e-voting. Hosting tidak hanya berarti “mengunggah file”. Aplikasi membutuhkan tiga tempat berbeda:</p>
+<ul><li><strong>Vercel</strong> menjalankan aplikasi web.</li><li><strong>TiDB Cloud</strong> menyimpan data siswa, admin, kandidat, periode pemilihan, suara, sesi, dan konten.</li><li><strong>Vercel Blob</strong> menyimpan foto yang diunggah dari panel admin.</li></ul>
+<div class="note"><strong>Analogi sederhana:</strong> Vercel adalah gedung tempat aplikasi melayani pengunjung. TiDB adalah lemari arsip data. Vercel Blob adalah gudang foto. Ketiganya harus terhubung agar aplikasi bekerja lengkap.</div>
+<div class="warn"><strong>Penting soal branch:</strong> konfigurasi Vercel berada di branch <code>fix/admin-gallery-previews</code>. Saat pemeriksaan dibuat, <code>main</code> belum memuat file <code>vercel.json</code>, <code>Dockerfile</code>, dan konfigurasi deployment terbaru. Deploy branch aktif ini, atau merge perubahan tersebut ke <code>main</code> terlebih dahulu.</div>
+
+<h2>2. Arsitektur Hosting</h2>
+<pre>Browser
+   |
+   v
+Vercel
+   |
+   +-- vercel.json: semua request diarahkan ke service app
+           |
+           +-- Dockerfile
+                 +-- FrankenPHP + PHP 8.4
+                 +-- Caddy web server
+                 +-- Laravel public/index.php
+           |
+           +-- TiDB Cloud (MySQL-compatible, port 4000, SSL)
+           |
+           +-- Vercel Blob (foto publik)</pre>
+<p>Alur request:</p><ol><li>Pengunjung membuka URL Vercel.</li><li>Vercel membaca <code>vercel.json</code>.</li><li>Semua URL diteruskan ke container bernama <code>app</code>.</li><li>Container menjalankan FrankenPHP.</li><li>Caddy melayani folder <code>/app/public</code>.</li><li>Path yang tidak berupa file diteruskan ke Laravel melalui <code>index.php</code>.</li><li>Laravel membaca database dan, bila perlu, URL foto dari Blob.</li></ol>
+
+<h2>3. Tools dan Fungsi Masing-masing</h2>
+<table><tr><th>Tool</th><th>Fungsi mudah dipahami</th><th>Dipakai di project</th></tr>
+<tr><td>Git / GitHub</td><td>Tempat menyimpan versi kode. Vercel mengambil kode dari sini setiap kali deploy.</td><td>Source repository project.</td></tr>
+<tr><td>Vercel</td><td>Platform hosting yang membangun dan menjalankan aplikasi di internet.</td><td>Membaca <code>vercel.json</code>, membangun container, memberi URL.</td></tr>
+<tr><td>Docker</td><td>Kotak paket yang membawa aplikasi beserta lingkungan runtime agar hasilnya konsisten.</td><td><code>Dockerfile</code> mendefinisikan isi container.</td></tr>
+<tr><td>FrankenPHP</td><td>Server aplikasi PHP yang menjalankan Laravel di dalam container.</td><td>Image <code>dunglas/frankenphp:1-php8.4-bookworm</code>.</td></tr>
+<tr><td>Caddy</td><td>Web server di depan Laravel; mengatur folder publik, routing, dan kompresi.</td><td><code>Caddyfile</code>.</td></tr>
+<tr><td>PHP</td><td>Bahasa pemrograman Laravel.</td><td>Project mensyaratkan PHP ^8.3; container memakai PHP 8.4.</td></tr>
+<tr><td>Composer</td><td>Manajer dependency PHP. Mengunduh Laravel, DomPDF, Excel, Blob client, dan paket lain.</td><td><code>composer.json</code> dan <code>composer.lock</code>.</td></tr>
+<tr><td>Node.js + npm</td><td>Menjalankan tool frontend seperti Vite dan Tailwind.</td><td><code>npm run build</code> tersedia; build frontend tidak dijalankan di Dockerfile saat ini.</td></tr>
+<tr><td>Vite</td><td>Menyiapkan asset CSS/JavaScript untuk browser.</td><td><code>vite.config.js</code>, <code>resources/css</code>, <code>resources/js</code>.</td></tr>
+<tr><td>TiDB Cloud</td><td>Database MySQL-compatible yang tetap menyimpan data setelah container Vercel berganti.</td><td>Data aplikasi dan session database.</td></tr>
+<tr><td>Vercel Blob</td><td>Penyimpanan file foto berbasis URL publik.</td><td>Foto kandidat, galeri, acara, profil, pengaturan.</td></tr>
+<tr><td>Artisan</td><td>Command-line tool Laravel untuk migrasi, key, cache, dan pemeriksaan aplikasi.</td><td><code>php artisan migrate</code>, <code>key:generate</code>, dan lainnya.</td></tr>
+</table>
+
+<h2>4. Persiapan Sebelum Deploy</h2>
+<h3>4.1 Akun dan akses</h3><ul><li>Akun GitHub dengan akses repository.</li><li>Akun Vercel.</li><li>Pilih region TiDB sedekat mungkin dengan Function Vercel. Untuk pengguna Indonesia, pertimbangkan TiDB Singapore dan Function Vercel <code>sin1</code>; konfigurasi region belum ada di repo, jadi lakukan setelah verifikasi deployment.</li><li>Akun TiDB Cloud.</li><li>Akses domain, jika memakai domain sendiri.</li></ul>
+<h3>4.2 Periksa branch dan file</h3><pre>git status
+git branch --show-current
+git log --oneline -8
+ls vercel.json Dockerfile Caddyfile VERCEL_ENV_CHECKLIST.md</pre>
+<p>Pastikan working tree bersih. Jangan commit <code>.env</code>, password database, token Blob, atau private key.</p>
+<h3>4.3 Uji lokal</h3><pre>composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan serve</pre><p>Buka <code>http://127.0.0.1:8000</code>. Uji login, admin, voting, upload foto, export PDF, dan export Excel.</p>
+<div class="warn">Jangan memakai data contoh dari seeder untuk pemilihan nyata tanpa meninjau ulang. <code>AdminSeeder</code> membuat username <code>admin</code> dengan password awal <code>admin123</code>; segera ganti password setelah login.</div>
+
+<h2>5. Menyiapkan Database TiDB Cloud</h2>
+<ol><li>Buka TiDB Cloud → My TiDB → Create Resource → Starter. Pilih nama, cloud provider, dan region. Untuk AWS, Singapore tersedia. Setelah jadi, buka Connect → Public → Generate Password; password hanya tampil sekali. Username TiDB wajib memakai prefix instance, misalnya <code>xxxx.root</code>.</li><li>Pakai database bawaan <code>test</code>, atau buat database lain lewat SQL Editor TiDB.</li><li>Buat user dan password database.</li><li>Catat host, nama database, username, password, dan sertifikat CA.</li><li>Gunakan koneksi MySQL-compatible. Checklist project menggunakan port <code>4000</code>.</li><li>Jangan memasukkan kredensial ke GitHub.</li></ol>
+<p>Database menyimpan tabel utama berikut: siswa, admin, periode pemilihan, kandidat, votes, konten OSIS, galeri, sessions, cache, jobs, dan migrations. Database juga memiliki constraint unik agar satu siswa tidak dapat memilih dua kali pada periode yang sama.</p>
+<h3>Menjalankan migrasi</h3><p>Preview dahulu perubahan schema:</p><pre>php artisan migrate --pretend --force</pre><p>Jika SQL sesuai dan koneksi berhasil, jalankan:</p><pre>php artisan migrate --force</pre><div class="warn">TiDB dapat memiliki perbedaan dukungan terhadap fitur atau index MySQL tertentu. Jika migrasi gagal, baca error pertama, sesuaikan migrasi yang bermasalah, lalu ulangi. Jangan menghapus data produksi sembarangan.</div>
+
+<h2>6. Menyiapkan Vercel Blob</h2>
+<ol><li>Buka project Vercel.</li><li>Buka menu <strong>Storage</strong>.</li><li>Buat store <strong>Blob</strong>.</li><li>Pilih akses <strong>Public</strong>, karena foto ditampilkan di halaman publik.</li><li>Hubungkan Blob store ke project.</li><li>Saat membuat store, centang <strong>Add a read-write token env var to this connection</strong> agar <code>BLOB_READ_WRITE_TOKEN</code> dibuat. Library PHP project ini membaca token tersebut; token wajib ada.</li><li>Redeploy setelah Blob terhubung.</li></ol>
+<p>Class <code>App\Services\BlobStorage</code> memvalidasi JPEG, PNG, GIF, dan WebP maksimal 4 MB, lalu mengunggah foto sebagai URL Blob publik. File lama yang berupa basename masih dicari di <code>public/image</code>; path lama tertentu masih dapat memakai konfigurasi R2 sampai migrasi selesai.</p>
+
+<h2>7. Menyiapkan Project Vercel</h2>
+<ol><li>Push branch yang berisi konfigurasi deployment ke GitHub.</li><li>Di Vercel pilih <strong>Add New → Project</strong>.</li><li>Import repository GitHub.</li><li>Pilih branch deployment yang benar.</li><li>Gunakan framework <strong>Other</strong>, karena project memakai container custom.</li><li>Biarkan Vercel membaca <code>vercel.json</code>.</li><li>Isi Environment Variables sebelum deploy pertama atau sebelum redeploy.</li></ol>
+<p><code>vercel.json</code> menunjuk ke <code>Dockerfile</code>. Jangan mengganti konfigurasi ini menjadi preset Laravel biasa tanpa menguji ulang routing dan runtime.</p>
+
+<h2>8. Environment Variables</h2>
+<p>Masukkan di <strong>Vercel → Project → Settings → Environment Variables</strong>. Pilih minimal <strong>Production</strong>. Nilai rahasia tidak ditulis dalam dokumentasi atau commit.</p>
+<table><tr><th>Variable</th><th>Nilai / contoh</th><th>Fungsi</th></tr>
+<tr><td>APP_KEY</td><td>Hasil <code>php artisan key:generate --show</code></td><td>Kunci enkripsi Laravel dan session.</td></tr>
+<tr><td>APP_ENV</td><td><code>production</code></td><td>Mode produksi.</td></tr>
+<tr><td>APP_DEBUG</td><td><code>false</code></td><td>Menyembunyikan detail error dari publik.</td></tr>
+<tr><td>APP_URL</td><td>URL Vercel sebenarnya</td><td>Membuat URL asset/link yang benar.</td></tr>
+<tr><td>LOG_CHANNEL</td><td><code>stderr</code></td><td>Mengarahkan log ke log container/Vercel.</td></tr>
+<tr><td>VIEW_COMPILED_PATH</td><td><code>/tmp</code></td><td>Folder sementara yang dapat ditulis container.</td></tr>
+<tr><td>CACHE_STORE</td><td><code>array</code></td><td>Cache sementara; tidak bergantung storage lokal.</td></tr>
+<tr><td>SESSION_DRIVER</td><td><code>database</code></td><td>Session disimpan di TiDB.</td></tr>
+<tr><td>QUEUE_CONNECTION</td><td><code>sync</code></td><td>Job dijalankan langsung; Vercel tidak menjalankan worker.</td></tr>
+<tr><td>DB_CONNECTION</td><td><code>mysql</code></td><td>Driver TiDB MySQL-compatible.</td></tr>
+<tr><td>DB_HOST</td><td>Host TiDB</td><td>Alamat server database.</td></tr>
+<tr><td>DB_PORT</td><td><code>4000</code></td><td>Port koneksi TiDB sesuai checklist project.</td></tr>
+<tr><td>DB_DATABASE</td><td>Nama database</td><td>Database tujuan.</td></tr>
+<tr><td>DB_USERNAME</td><td>User TiDB</td><td>Identitas koneksi.</td></tr>
+<tr><td>DB_PASSWORD</td><td>Password TiDB</td><td>Rahasia koneksi.</td></tr>
+<tr><td>MYSQL_ATTR_SSL_CA</td><td><code>/etc/ssl/certs/ca-certificates.crt</code></td><td>Sertifikat SSL database. Image project berbasis Debian; path ini yang cocok. Jangan memakai path RedHat dari checklist lama.</td></tr>
+<tr><td>BLOB_READ_WRITE_TOKEN</td><td>Dibuat/diisi Vercel Blob</td><td>Hak upload dan hapus Blob.</td></tr>
+<tr><td>FILESYSTEM_DISK</td><td><code>local</code></td><td>Nilai fallback; upload produksi memakai service Blob.</td></tr>
+</table>
+<div class="warn"><strong>Jangan salin nilai token contoh.</strong> Generate APP_KEY baru untuk environment produksi. Jangan memakai APP_KEY dari komputer lain.</div>
+
+<h2>9. Deploy Langkah demi Langkah</h2>
+<h3>Urutan ringkas</h3><ol><li>Siapkan TiDB.</li><li>Siapkan Blob Public.</li><li>Isi Environment Variables.</li><li>Import repository dan pilih branch yang benar.</li><li>Deploy.</li><li>Buka Logs dan pastikan container start tanpa error.</li><li>Jalankan migrasi terhadap TiDB.</li><li>Seed data awal hanya jika diperlukan.</li><li>Uji semua alur.</li></ol>
+<h3>Jika memakai Vercel CLI</h3><pre>npm install -g vercel
+vercel login
+vercel link
+vercel env pull .env.local
+vercel deploy --prod</pre><p>Perintah <code>vercel env pull</code> menghasilkan <code>.env.local</code>. Laravel tidak otomatis membaca file itu sebagai <code>.env</code>; jangan commit file tersebut. Untuk local testing, salin variabel secara aman ke environment lokal sesuai kebutuhan.</p>
+<h3>Build yang dilakukan Dockerfile</h3><ol><li>Memakai FrankenPHP PHP 8.4.</li><li>Memasang ekstensi <code>pdo_mysql</code>, <code>gd</code>, <code>zip</code>, dan <code>opcache</code>.</li><li>Mengatur upload maksimal 4 MB per file dan post body 5 MB.</li><li>Menjalankan Composer production install tanpa dependency dev.</li><li>Membuat folder cache, session, view, log, dan bootstrap cache.</li><li>Menjalankan FrankenPHP sebagai user <code>www-data</code>.</li></ol>
+
+<h2>10. Migrasi dan Data Awal</h2>
+<p>Setelah deployment pertama berhasil, jalankan migrasi menggunakan koneksi production. Pilihan paling aman adalah menjalankan Artisan dari lingkungan yang memiliki kode project dan environment production, bukan mengandalkan filesystem container yang sementara.</p><pre>php artisan migrate --force</pre><p>Untuk data awal:</p><pre>php artisan db:seed --class=AdminSeeder --force
+php artisan db:seed --class=SiswaSeeder --force</pre><div class="warn">Seeder berisi data contoh siswa dan password awal admin. Untuk production nyata, review isi seeder dahulu. Hindari menambahkan data demo ke sistem pemilihan yang sudah berisi data sekolah.</div>
+
+<h2>11. Pengujian Setelah Deploy</h2>
+<table><tr><th>Pengujian</th><th>Hasil yang diharapkan</th></tr>
+<tr><td>URL root <code>/</code></td><td>Halaman publik tampil tanpa error.</td></tr>
+<tr><td><code>/up</code></td><td>Health check Laravel merespons.</td></tr>
+<tr><td><code>/login</code></td><td>Login siswa tampil.</td></tr>
+<tr><td><code>/admin/login</code></td><td>Login admin tampil.</td></tr>
+<tr><td>Login admin valid</td><td>Masuk ke dashboard dan session bertahan saat pindah halaman.</td></tr>
+<tr><td>Tambah foto</td><td>URL foto berasal dari <code>blob.vercel-storage.com</code> dan foto tampil setelah refresh.</td></tr>
+<tr><td>Upload &gt;4 MB / tipe salah</td><td>Ditolak dengan pesan validasi, bukan server error.</td></tr>
+<tr><td>Login siswa + voting</td><td>Suara tersimpan dan redirect selesai.</td></tr>
+<tr><td>Voting dua kali</td><td>Ditolak oleh validasi/constraint database.</td></tr>
+<tr><td>Export PDF/Excel</td><td>File dapat diunduh; PDF tidak gagal menulis font/temp.</td></tr>
+<tr><td>Refresh setelah deployment baru</td><td>Data tetap ada karena berada di TiDB/Blob, bukan disk container.</td></tr>
+</table>
+
+<h2>12. Keamanan, Batasan, dan Operasional</h2>
+<ul><li><strong>Jangan simpan upload penting di disk lokal container.</strong> Filesystem Vercel bersifat sementara; aplikasi sudah mengarahkan foto ke Blob.</li><li><strong>Request sekitar 4,5 MB.</strong> Galeri mendukung beberapa file, tetapi unggah batch kecil agar total body tidak melewati batas.</li><li><strong>Blob memiliki kuota/operasi.</strong> Checklist project mencatat Vercel Blob Hobby 2.000 advanced operations per bulan. Hapus foto lama dengan hati-hati.</li><li><strong>Queue dan scheduler.</strong> Vercel tidak menjalankan worker atau scheduler permanen; konfigurasi queue memakai <code>sync</code>.</li><li><strong>Session harus database.</strong> Tabel <code>sessions</code> wajib sudah termigrasi.</li><li><strong>APP_DEBUG harus false.</strong> Error detail dapat membocorkan konfigurasi dan query.</li><li><strong>HTTPS dan proxy.</strong> Bootstrap mempercayai proxy Vercel agar URL dan request HTTPS diproses benar.</li><li><strong>Password.</strong> Ganti password admin default. Gunakan password unik dan jangan membagikannya di chat publik.</li><li><strong>Backup.</strong> Atur backup/restore TiDB sebelum pemilihan. Blob juga perlu rencana pemulihan file.</li><li><strong>Hobby.</strong> Function maksimal 300 detik, request body sekitar 4,5 MB, satu region. Blob Hobby mencakup 1 GB storage, 10.000 simple operations, 2.000 advanced operations, 10 GB transfer per bulan. Setelah limit Blob terlampaui, akses dapat berhenti sampai periode berikutnya. Periksa Terms Vercel sebelum pemakaian resmi.</li></ul>
+
+<h2>13. Troubleshooting</h2>
+<table><tr><th>Gejala</th><th>Penyebab umum</th><th>Tindakan</th></tr>
+<tr><td>Build gagal Composer</td><td>Lock file tidak cocok atau dependency PHP.</td><td>Jalankan <code>composer install</code> lokal, perbaiki lock file, push ulang.</td></tr>
+<tr><td>404 semua route</td><td>Branch salah atau <code>vercel.json</code> tidak terbaca.</td><td>Pastikan deploy branch yang berisi file Vercel; cek rewrite service app.</td></tr>
+<tr><td>Error koneksi DB</td><td>Host/port/user salah atau SSL CA salah.</td><td>Cek semua DB variables, port 4000, dan path CA alternatif di checklist.</td></tr>
+<tr><td>Session selalu hilang</td><td>Tabel sessions belum ada atau DB tidak dapat ditulis.</td><td>Jalankan migrasi, cek <code>SESSION_DRIVER=database</code>, cek log.</td></tr>
+<tr><td>Upload gagal</td><td>Token Blob kosong, Blob belum terhubung, file terlalu besar, atau total body terlalu besar.</td><td>Cek token, akses Public, unggah file lebih kecil/batch kecil.</td></tr>
+<tr><td>Foto lama rusak</td><td>URL/path lama masih menunjuk R2 atau file lokal.</td><td>Jangan hapus R2 dulu; isi AWS legacy variables sampai migrasi terverifikasi.</td></tr>
+<tr><td>PDF gagal dibuat</td><td>Folder temp tidak writable atau asset remote tidak dapat diakses.</td><td>Pastikan <code>VIEW_COMPILED_PATH=/tmp</code>; cek log dan URL gambar.</td></tr>
+<tr><td>Asset CSS/JS tidak tampil</td><td>Build Vite belum tersedia; view memakai <code>@vite</code>.</td><td>Jalankan <code>npm ci && npm run build</code> dan tinjau strategi memasukkan <code>public/build</code> ke image.</td></tr>
+<tr><td>Data hilang setelah redeploy</td><td>Data ditulis ke storage lokal container.</td><td>Pindahkan data persisten ke TiDB/Blob; jangan mengandalkan storage lokal.</td></tr>
+</table>
+
+<h2>14. Operasional, region, log, dan rollback</h2><p>Container Vercel dapat scale-to-zero setelah idle. Request pertama sesudahnya mungkin lebih lambat. Buka tab <strong>Logs</strong> untuk melihat stdout/stderr. Container tidak mempunyai IP keluar tetap; karena itu firewall TiDB tidak dapat dibatasi ke satu IP Vercel. Gunakan TLS dan password database kuat.</p><p>Untuk latensi, letakkan Function dekat database. Repo belum menetapkan region. Jika TiDB di Singapore, tambahkan <code>"regions": ["sin1"]</code> hanya setelah deployment diuji; perubahan konfigurasi region adalah perubahan deployment.</p><p>Rollback: Vercel Dashboard → Deployments → menu titik tiga pada deployment sebelumnya → Instant Rollback. Hobby hanya dapat rollback ke production deployment sebelumnya. Rollback tidak membatalkan migration atau perubahan environment variable; cek database terpisah.</p><h2>15. Legacy R2 dan Pembersihan</h2>
+<p>Project masih membawa dependency Flysystem S3 dan dukungan URL lama agar file lama dapat ditampilkan. Jangan menghapus R2 terlalu cepat.</p><ol><li>Pastikan semua foto lama terbuka.</li><li>Pastikan database sudah berisi URL Blob untuk foto baru/migrasi.</li><li>Backup daftar file lama.</li><li>Baru hapus environment variable <code>AWS_*</code>, dependency <code>league/flysystem-aws-s3-v3</code>, dan bucket R2.</li></ol>
+
+<h2>16. Checklist Akhir</h2><table><tr><th>Centang</th><th>Pemeriksaan</th></tr>
+<tr><td>☐</td><td>Branch yang berisi <code>vercel.json</code>, <code>Dockerfile</code>, dan <code>Caddyfile</code> sudah dipush.</td></tr>
+<tr><td>☐</td><td>TiDB database, user, password, host, port, dan SSL siap.</td></tr>
+<tr><td>☐</td><td>Vercel Blob Public dibuat dan terhubung.</td></tr>
+<tr><td>☐</td><td>APP_KEY produksi baru dibuat.</td></tr>
+<tr><td>☐</td><td>APP_DEBUG=false.</td></tr>
+<tr><td>☐</td><td>Semua DB variables sudah diisi.</td></tr>
+<tr><td>☐</td><td>BLOB_READ_WRITE_TOKEN tersedia.</td></tr>
+<tr><td>☐</td><td>Migrasi berhasil dengan <code>--force</code>.</td></tr>
+<tr><td>☐</td><td>Password admin default sudah diganti.</td></tr>
+<tr><td>☐</td><td>Login siswa dan admin berhasil.</td></tr>
+<tr><td>☐</td><td>Voting, anti-voting-ganda, upload, PDF, dan Excel sudah diuji.</td></tr>
+<tr><td>☐</td><td>Backup TiDB dan rencana pemulihan Blob tersedia.</td></tr>
+<tr><td>☐</td><td>R2 belum dihapus sampai seluruh file legacy terverifikasi.</td></tr></table>
+
+<h2>Penutup</h2><p>Urutan paling aman adalah: <strong>database dulu, storage foto kedua, environment ketiga, deployment keempat, migrasi kelima, pengujian terakhir</strong>. Jika urutan ini diikuti, Vercel hanya menjadi tempat menjalankan aplikasi; data penting tetap berada di layanan penyimpanan yang memang dirancang persisten.</p>
+<p class="small">Rujukan konfigurasi internal: <code>vercel.json</code>, <code>Dockerfile</code>, <code>Caddyfile</code>, <code>VERCEL_ENV_CHECKLIST.md</code>, <code>composer.json</code>, <code>config/database.php</code>, <code>config/session.php</code>, <code>app/Services/BlobStorage.php</code>.</p>
+</body></html>
