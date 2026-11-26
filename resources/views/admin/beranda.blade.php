@@ -189,9 +189,9 @@
 
         // ===== foto latar: dua foto (laptop & HP) dengan pratinjau langsung =====
         var M = {
-            lap: { file: $('heroFile'),   flag: $('hapusFoto'),   url: @json($foto   ? asset('storage/'.$foto)   : null), nama: 'Laptop',
+            lap: { file: $('heroFile'),   flag: $('hapusFoto'),   url: @json($foto   ? app(\App\Services\BlobStorage::class)->url($foto)   : null), nama: 'Laptop',
                    info: 'Tampilan laptop / layar lebar. Gunakan foto landscape (mendatar).' },
-            hp:  { file: $('heroFileHp'), flag: $('hapusFotoHp'), url: @json($fotoHp ? asset('storage/'.$fotoHp) : null), nama: 'HP',
+            hp:  { file: $('heroFileHp'), flag: $('hapusFotoHp'), url: @json($fotoHp ? app(\App\Services\BlobStorage::class)->url($fotoHp)) : null), nama: 'HP',
                    info: 'Tampilan HP. Gunakan foto portrait (tegak) supaya pas di layar HP.' }
         };
         var mode = 'lap';

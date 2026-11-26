@@ -35,12 +35,8 @@ class PengaturanController extends Controller
             'hero_tagline'   => 'nullable|string|max:300',
             'hero_btn1_teks' => 'nullable|string|max:30',
             'hero_btn2_teks' => 'nullable|string|max:30',
-<<<<<<< HEAD
             'hero_foto'      => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:4096',
-=======
-            'hero_foto'      => 'nullable|image|max:5120',
-            'hero_foto_hp'   => 'nullable|image|max:5120',
->>>>>>> 36dfeab (feat: foto hero terpisah untuk laptop (landscape) dan HP (portrait))
+            'hero_foto_hp'   => 'nullable|image|mimes:jpg,jpeg,png,gif,webp|max:4096',
         ]);
 
         foreach (['hero_badge', 'hero_judul', 'hero_judul2', 'hero_tagline', 'hero_btn1_teks', 'hero_btn2_teks'] as $kunci) {

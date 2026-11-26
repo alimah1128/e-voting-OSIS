@@ -104,13 +104,9 @@
 
     {{-- ===== HERO ===== --}}
     <header class="hero"
-<<<<<<< HEAD
-        @if(!empty($p['hero_foto'])) style="background-image:url('{{ app(\App\Services\BlobStorage::class)->url($p['hero_foto']) }}'){{ $pos ? ';--hero-pos:'.$pos : '' }}" @endif>
-=======
         @if(!empty($p['hero_foto']) || !empty($p['hero_foto_hp']))
-            style="@if(!empty($p['hero_foto']))--hero-img:url('{{ asset('storage/'.$p['hero_foto']) }}');@endif @if(!empty($p['hero_foto_hp']))--hero-img-hp:url('{{ asset('storage/'.$p['hero_foto_hp']) }}');@endif{{ $pos ? '--hero-pos:'.$pos.';' : '' }}"
+            style="@if(!empty($p['hero_foto']))--hero-img:url('{{ app(\App\Services\BlobStorage::class)->url($p['hero_foto']) }}');@endif @if(!empty($p['hero_foto_hp']))--hero-img-hp:url('{{ app(\App\Services\BlobStorage::class)->url($p['hero_foto_hp']) }}');@endif{{ $pos ? '--hero-pos:'.$pos.';' : '' }}"
         @endif>
->>>>>>> 36dfeab (feat: foto hero terpisah untuk laptop (landscape) dan HP (portrait))
         <div class="hero-in">
             @if(!empty($p['hero_badge']))
                 <div class="hero-badge"><i></i>{{ $p['hero_badge'] }}</div>
