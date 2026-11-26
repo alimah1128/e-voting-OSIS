@@ -8,6 +8,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'Dashboard') - Admin OSIS SMK Pertiwi Kuningan</title>
+    <link rel="icon" type="image/png" href="{{ asset('image/logo-osis.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('image/logo-osis.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root { --primary:#05689f; --navy:#0b5a85; --soft:#e0f2fe; --bg:#f0f7ff; --line:#e2e8f0; }
@@ -184,6 +186,7 @@
         @media (prefers-reduced-motion:reduce){ *, *::before, *::after { transition-duration:.01ms !important; } }
     </style>
     @stack('styles')
+    @include('admin.partials.mobile')
 </head>
 <body>
     <div class="topwrap">

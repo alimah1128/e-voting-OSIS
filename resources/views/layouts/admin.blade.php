@@ -11,6 +11,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin') - E-Voting OSIS SMK Pertiwi Kuningan</title>
+    <link rel="icon" type="image/png" href="{{ asset('image/logo-osis.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('image/logo-osis.png') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1194,6 +1196,7 @@
             *, *::before, *::after { transition-duration: .01ms !important; }
         }
     </style>
+    @include('admin.partials.mobile')
 </head>
 <body>
 
