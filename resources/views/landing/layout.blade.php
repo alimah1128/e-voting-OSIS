@@ -24,6 +24,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'OSIS SMK Pertiwi Kuningan')</title>
+    <link rel="icon" type="image/png" href="{{ asset('image/logo-osis.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('image/logo-osis.png') }}">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --sky:#38bdf8; --sky-dark:#0284c7; --brand:#0369a1; --navy:#075985; --deep:#053a5c; --bg:#eef6fd; --soft:#e0f2fe; }
