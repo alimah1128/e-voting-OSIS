@@ -137,7 +137,7 @@
             <div class="foto-note">
                 <b>💻 Foto Laptop</b> &mdash; foto <b>landscape</b> (mendatar), lebar minimal 1600 px.<br>
                 <b>📱 Foto HP</b> &mdash; foto <b>portrait</b> (tegak), contoh 1080 &times; 1920 px (rasio 9:16).<br>
-                Maksimal 5 MB per foto. Kalau foto HP belum diisi, HP akan memakai foto laptop.
+                Maksimal 4 MB per foto. Kalau foto HP belum diisi, HP akan memakai foto laptop.
             </div>
 
             <div class="actions">
@@ -191,7 +191,7 @@
         var M = {
             lap: { file: $('heroFile'),   flag: $('hapusFoto'),   url: @json($foto   ? app(\App\Services\BlobStorage::class)->url($foto)   : null), nama: 'Laptop',
                    info: 'Tampilan laptop / layar lebar. Gunakan foto landscape (mendatar).' },
-            hp:  { file: $('heroFileHp'), flag: $('hapusFotoHp'), url: @json($fotoHp ? app(\App\Services\BlobStorage::class)->url($fotoHp)) : null), nama: 'HP',
+            hp:  { file: $('heroFileHp'), flag: $('hapusFotoHp'), url: @json($fotoHp ? app(\App\Services\BlobStorage::class)->url($fotoHp) : null), nama: 'HP',
                    info: 'Tampilan HP. Gunakan foto portrait (tegak) supaya pas di layar HP.' }
         };
         var mode = 'lap';
