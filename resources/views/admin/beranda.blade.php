@@ -3,12 +3,30 @@
 
 @push('styles')
 <style>
+    .mode-tabs { display:inline-flex; gap:4px; padding:5px; background:#fff; border-radius:999px; box-shadow:0 4px 14px rgba(2,132,199,.08); margin-bottom:14px; max-width:100%; }
+    .mode-tabs button { border:none; background:transparent; font-family:inherit; font-size:13px; font-weight:600; color:var(--navy);
+                        padding:9px 18px; border-radius:999px; cursor:pointer; transition:.2s; white-space:nowrap; }
+    .mode-tabs button.on { background:var(--primary); color:#fff; box-shadow:0 4px 10px rgba(5,104,159,.25); }
+    .mode-info { color:#64748b; font-size:13px; margin:-4px 0 14px; line-height:1.6; }
+
     .hero-prev { position:relative; min-height:380px; border-radius:26px; overflow:hidden; color:#fff; padding:70px 5% 50px;
-                 background:linear-gradient(135deg,#032854,#0369a1); background-size:cover; background-position:center; }
+                 background-color:#0369a1; background-image:linear-gradient(135deg,#032854,#0369a1); background-size:cover; background-position:center; background-repeat:no-repeat;
+                 transition:max-width .25s ease; }
     .hero-prev.has-img::before { content:''; position:absolute; inset:0;
                  background:linear-gradient(90deg, rgba(3,40,84,.85) 0%, rgba(7,89,133,.6) 55%, rgba(7,89,133,.35) 100%); }
     .hero-prev > * { position:relative; z-index:1; }
-    .float-btns { position:absolute !important; top:16px; right:16px; display:flex; gap:8px; z-index:2; }
+
+    /* ===== mode HP: pratinjau berbentuk layar HP (portrait) ===== */
+    .hero-prev.hp { width:100%; max-width:340px; min-height:600px; margin:0 auto; padding:64px 20px 26px; border-radius:30px;
+                    display:flex; flex-direction:column; justify-content:flex-end; background-position:center top; box-shadow:0 14px 34px rgba(3,40,84,.22); }
+    .hero-prev.hp.has-img::before { background:linear-gradient(180deg, rgba(3,40,84,.30) 0%, rgba(3,40,84,.55) 40%, rgba(3,40,84,.92) 100%); }
+    .hero-prev.hp .hp-h1 { font-size:30px; }
+    .hero-prev.hp .hp-tag { font-size:13px; }
+    .hero-prev.hp .hp-btns { margin-top:18px; }
+    .hero-prev.hp .hp-btn { padding:9px 16px; font-size:12.5px; }
+    .hero-prev.hp .hint { right:50%; transform:translateX(50%); white-space:nowrap; }
+
+    .float-btns { position:absolute !important; top:16px; right:16px; left:16px; display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; z-index:2; }
     .fbtn { background:#fff; color:var(--navy); border:none; border-radius:999px; padding:10px 18px; font-family:inherit; font-size:13px;
             font-weight:600; cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,.15); }
     .fbtn.danger { color:#b91c1c; }
@@ -23,10 +41,19 @@
     .hp-btn.p { background:linear-gradient(135deg,#00b4f0,#0090e0); border-color:transparent; }
     .pen { width:34px; height:34px; border-radius:50%; border:none; background:#fff; color:var(--navy); cursor:pointer; font-size:15px;
            display:inline-flex; align-items:center; justify-content:center; box-shadow:0 4px 10px rgba(0,0,0,.15); vertical-align:middle; margin-left:8px; }
-    .hint { position:absolute !important; right:20px; bottom:14px; font-family:ui-monospace,Menlo,monospace; font-size:11px; opacity:.8; }
+    .hint { position:absolute !important; right:20px; bottom:14px; font-family:ui-monospace,Menlo,monospace; font-size:11px; opacity:.85; text-align:center; }
     .edit-card { margin-top:18px; }
     .edit-card h3 { margin-bottom:14px; }
-    @media (max-width:760px){ .hero-prev { padding:70px 6% 44px; min-height:340px; } }
+    .foto-note { color:#64748b; font-size:12.5px; line-height:1.7; background:#f0f9ff; border-radius:12px; padding:12px 14px; margin-bottom:14px; }
+    .foto-note b { color:var(--navy); }
+    @media (max-width:760px){
+        .hero-prev { padding:72px 6% 40px; min-height:340px; border-radius:22px; }
+        .hero-prev.hp { max-width:100%; min-height:560px; padding:64px 6% 26px; }
+        .float-btns { top:12px; left:12px; right:12px; }
+        .fbtn { padding:9px 14px; font-size:12.5px; }
+        .mode-tabs { display:flex; width:100%; }
+        .mode-tabs button { flex:1; padding:10px 8px; }
+    }
 </style>
 @endpush
 
@@ -35,7 +62,8 @@
         $j1 = $data['hero_judul']  ?? '';
         $j2 = $data['hero_judul2'] ?? '';
         if ($j1 === '' && $j2 === '') { $j1 = 'OSIS SMK Pertiwi'; $j2 = 'Kuningan'; }
-        $foto = $data['hero_foto'] ?? '';
+        $foto = $data['hero_foto'] ?? '';        // foto laptop (landscape)
+        $fotoHp = $data['hero_foto_hp'] ?? '';   // foto HP (portrait)
         $b1 = $data['hero_btn1_teks'] ?? '';
         $b2 = $data['hero_btn2_teks'] ?? '';
     @endphp
@@ -43,13 +71,22 @@
     <form method="POST" action="{{ route('admin.beranda.update') }}" enctype="multipart/form-data">
         @csrf
         <input type="hidden" name="hapus_hero_foto" id="hapusFoto" value="0">
+        <input type="hidden" name="hapus_hero_foto_hp" id="hapusFotoHp" value="0">
         <input type="file" id="heroFile" name="hero_foto" accept="image/*" hidden>
+        <input type="file" id="heroFileHp" name="hero_foto_hp" accept="image/*" hidden>
+
+        {{-- Pilih tampilan yang mau dilihat/diubah: laptop atau HP --}}
+        <div class="mode-tabs" role="tablist" aria-label="Pilih tampilan">
+            <button type="button" id="tabLap" class="on" role="tab" aria-selected="true">💻 Foto Laptop</button>
+            <button type="button" id="tabHp" role="tab" aria-selected="false">📱 Foto HP</button>
+        </div>
+        <p class="mode-info" id="modeInfo"></p>
 
         {{-- Pratinjau hero (sama dengan tampilan website) --}}
         <section class="hero-prev {{ $foto ? 'has-img' : '' }}" id="heroPrev"
                  @if($foto) style="background-image:url('{{ app(\App\Services\BlobStorage::class)->url($foto) }}')" @endif>
             <div class="float-btns">
-                <label class="fbtn" for="heroFile">🖼 Ganti Foto Latar</label>
+                <label class="fbtn" for="heroFile" id="btnGanti">🖼 Ganti Foto Laptop</label>
                 <button type="button" class="fbtn danger" id="btnHapus" {!! $foto ? '' : 'hidden' !!}>Hapus Foto</button>
             </div>
 
@@ -97,7 +134,11 @@
                     <input type="text" id="hero_btn2_teks" name="hero_btn2_teks" value="{{ old('hero_btn2_teks', $data['hero_btn2_teks'] ?? '') }}" placeholder="Lihat Acara"></div>
             </div>
 
-            <small style="color:#94a3b8;font-size:12px;display:block;margin-bottom:14px">Foto latar: gunakan foto landscape, lebar minimal 1600 px, maksimal 4 MB.</small>
+            <div class="foto-note">
+                <b>💻 Foto Laptop</b> &mdash; foto <b>landscape</b> (mendatar), lebar minimal 1600 px.<br>
+                <b>📱 Foto HP</b> &mdash; foto <b>portrait</b> (tegak), contoh 1080 &times; 1920 px (rasio 9:16).<br>
+                Maksimal 5 MB per foto. Kalau foto HP belum diisi, HP akan memakai foto laptop.
+            </div>
 
             <div class="actions">
                 <button class="btn btn-primary" type="submit">Simpan Perubahan</button>
@@ -111,7 +152,7 @@
 <script>
     (function () {
         var $ = function (id) { return document.getElementById(id); };
-        var prev = $('heroPrev'), file = $('heroFile');
+        var prev = $('heroPrev');
 
         function teks(inputId, targetId, fallback, akhiran, sembunyiKosong, wrapId) {
             var inp = $(inputId), tgt = $(targetId);
@@ -146,29 +187,63 @@
             });
         });
 
-        // foto latar: pratinjau langsung
-        file.addEventListener('change', function () {
-            if (!file.files || !file.files[0]) return;
-            var r = new FileReader();
-            r.onload = function (e) {
-                prev.style.backgroundImage = "url('" + e.target.result + "')";
-                prev.classList.add('has-img');
-                $('hapusFoto').value = '0';
-                $('btnHapus').hidden = false;
-                $('pvHint').hidden = true;
-            };
-            r.readAsDataURL(file.files[0]);
+        // ===== foto latar: dua foto (laptop & HP) dengan pratinjau langsung =====
+        var M = {
+            lap: { file: $('heroFile'),   flag: $('hapusFoto'),   url: @json($foto   ? asset('storage/'.$foto)   : null), nama: 'Laptop',
+                   info: 'Tampilan laptop / layar lebar. Gunakan foto landscape (mendatar).' },
+            hp:  { file: $('heroFileHp'), flag: $('hapusFotoHp'), url: @json($fotoHp ? asset('storage/'.$fotoHp) : null), nama: 'HP',
+                   info: 'Tampilan HP. Gunakan foto portrait (tegak) supaya pas di layar HP.' }
+        };
+        var mode = 'lap';
+
+        function gambar() {
+            var m = M[mode];
+            var tampil = m.url || (mode === 'hp' ? M.lap.url : null);   // HP tanpa foto sendiri -> pakai foto laptop
+            prev.classList.toggle('hp', mode === 'hp');
+            prev.style.backgroundImage = tampil ? "url('" + tampil + "')" : '';
+            prev.classList.toggle('has-img', !!tampil);
+
+            $('btnGanti').setAttribute('for', m.file.id);
+            $('btnGanti').textContent = '🖼 ' + (m.url ? 'Ganti' : 'Pilih') + ' Foto ' + m.nama;
+            $('btnHapus').hidden = !m.url;
+
+            var hint = $('pvHint');
+            hint.hidden = !!tampil;
+            hint.textContent = '[ foto ' + m.nama.toLowerCase() + ' belum diisi ]';
+
+            $('tabLap').classList.toggle('on', mode === 'lap'); $('tabLap').setAttribute('aria-selected', mode === 'lap');
+            $('tabHp').classList.toggle('on', mode === 'hp');   $('tabHp').setAttribute('aria-selected', mode === 'hp');
+            $('modeInfo').textContent = m.info + (mode === 'hp' && !m.url && M.lap.url ? ' (Belum ada foto HP, sementara memakai foto laptop.)' : '');
+        }
+
+        $('tabLap').addEventListener('click', function () { mode = 'lap'; gambar(); });
+        $('tabHp').addEventListener('click',  function () { mode = 'hp';  gambar(); });
+
+        ['lap', 'hp'].forEach(function (k) {
+            M[k].file.addEventListener('change', function () {
+                var f = M[k].file;
+                if (!f.files || !f.files[0]) return;
+                var r = new FileReader();
+                r.onload = function (e) {
+                    M[k].url = e.target.result;
+                    M[k].flag.value = '0';
+                    mode = k;           // langsung pindah ke tampilan yang barusan diganti
+                    gambar();
+                };
+                r.readAsDataURL(f.files[0]);
+            });
         });
 
-        // hapus foto latar
+        // hapus foto pada tampilan yang sedang dibuka
         $('btnHapus').addEventListener('click', function () {
-            $('hapusFoto').value = '1';
-            file.value = '';
-            prev.style.backgroundImage = '';
-            prev.classList.remove('has-img');
-            $('btnHapus').hidden = true;
-            $('pvHint').hidden = false;
+            var m = M[mode];
+            m.flag.value = '1';
+            m.file.value = '';
+            m.url = null;
+            gambar();
         });
+
+        gambar();
     })();
 </script>
 @endpush

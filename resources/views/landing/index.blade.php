@@ -6,7 +6,9 @@
     /* ===== HERO ===== */
     .hero { position:relative; min-height:100vh; min-height:100svh; display:flex; align-items:center; color:#fff;
             border-radius:0 0 36px 36px; overflow:hidden;
-            background:linear-gradient(135deg,#075985,#0284c7); background-size:cover; background-position:var(--hero-pos, center 25%); }
+            /* foto laptop = --hero-img ; foto HP = --hero-img-hp (dipasang lewat atribut style di bawah) */
+            background-color:#075985; background-repeat:no-repeat; background-size:cover;
+            background-image:var(--hero-img, linear-gradient(135deg,#075985,#0284c7)); background-position:var(--hero-pos, center 25%); }
     .hero::before { content:''; position:absolute; inset:0;
             background:linear-gradient(90deg, rgba(3,40,84,.88) 0%, rgba(7,89,133,.68) 55%, rgba(7,89,133,.45) 100%); }
     .hero-in { position:relative; z-index:2; max-width:1240px; width:100%; margin:0 auto; padding:130px 5% 90px; }
@@ -74,7 +76,9 @@
 
     @media (max-width:820px){
         /* HP: foto tampil lebih lega di atas, teks turun ke bawah di atas lapisan gelap */
-        .hero { border-radius:0 0 26px 26px; min-height:80vh; min-height:80svh; align-items:flex-end; }
+        .hero { border-radius:0 0 26px 26px; min-height:92vh; min-height:92svh; align-items:flex-end;
+                /* HP: pakai foto portrait kalau ada, kalau belum diisi pakai foto laptop */
+                background-image:var(--hero-img-hp, var(--hero-img, linear-gradient(180deg,#075985,#032854))); background-position:center top; }
         .hero::before { background:linear-gradient(180deg, rgba(3,40,84,.30) 0%, rgba(3,40,84,.55) 40%, rgba(3,40,84,.92) 100%); }
         .hero-in { padding:110px 6% 44px; }
         .hero-btns .btn { flex:1 1 auto; text-align:center; }
@@ -100,7 +104,13 @@
 
     {{-- ===== HERO ===== --}}
     <header class="hero"
+<<<<<<< HEAD
         @if(!empty($p['hero_foto'])) style="background-image:url('{{ app(\App\Services\BlobStorage::class)->url($p['hero_foto']) }}'){{ $pos ? ';--hero-pos:'.$pos : '' }}" @endif>
+=======
+        @if(!empty($p['hero_foto']) || !empty($p['hero_foto_hp']))
+            style="@if(!empty($p['hero_foto']))--hero-img:url('{{ asset('storage/'.$p['hero_foto']) }}');@endif @if(!empty($p['hero_foto_hp']))--hero-img-hp:url('{{ asset('storage/'.$p['hero_foto_hp']) }}');@endif{{ $pos ? '--hero-pos:'.$pos.';' : '' }}"
+        @endif>
+>>>>>>> 36dfeab (feat: foto hero terpisah untuk laptop (landscape) dan HP (portrait))
         <div class="hero-in">
             @if(!empty($p['hero_badge']))
                 <div class="hero-badge"><i></i>{{ $p['hero_badge'] }}</div>
