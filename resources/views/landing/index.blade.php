@@ -76,7 +76,7 @@
 
     @media (max-width:820px){
         /* HP: foto tampil lebih lega di atas, teks turun ke bawah di atas lapisan gelap */
-        .hero { border-radius:0 0 26px 26px; min-height:92vh; min-height:92svh; align-items:flex-end;
+        .hero { border-radius:0 0 26px 26px; min-height:100vh; min-height:100svh; min-height:100dvh; align-items:flex-end;
                 /* HP: pakai foto portrait kalau ada, kalau belum diisi pakai foto laptop */
                 background-image:var(--hero-img-hp, var(--hero-img, linear-gradient(180deg,#075985,#032854))); background-position:center top; }
         .hero::before { background:linear-gradient(180deg, rgba(3,40,84,.30) 0%, rgba(3,40,84,.55) 40%, rgba(3,40,84,.92) 100%); }
